@@ -1,7 +1,7 @@
 #include <gtk/gtk.h>
 #include <hildon/hildon-button.h>
 
-#include "connui_box_view.h"
+#include "connui-box-view.h"
 
 struct _ConnuiBoxViewPrivate
 {

@@ -1,8 +1,8 @@
 #include <gtk/gtk.h>
 
-#include "connui_box_view.h"
-#include "connui_scan_box_view.h"
-#include "connui_pixbuf_cache.h"
+#include "connui-box-view.h"
+#include "connui-scan-box_view.h"
+#include "connui-pixbuf-cache.h"
 
 struct _ConnuiScanBoxViewPrivate
 {

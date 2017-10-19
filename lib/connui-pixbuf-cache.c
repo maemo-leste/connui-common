@@ -1,7 +1,7 @@
 #include <gtk/gtk.h>
 #include <syslog.h>
 
-#include "connui_pixbuf_cache.h"
+#include "connui-pixbuf-cache.h"
 
 struct _ConnuiPixbufCache
 {
