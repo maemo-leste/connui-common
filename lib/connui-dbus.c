@@ -156,6 +156,35 @@ connui_dbus_connect_system_path(const char *path,
   return FALSE;
 }
 
+dbus_bool_t
+connui_dbus_disconnect_system_path(const char *path)
+{
+  return dbus_connection_unregister_object_path(connui_dbus_get_system(), path);
+}
+
+dbus_bool_t
+connui_dbus_connect_session_path(const char *path,
+                                 DBusObjectPathMessageFunction function,
+                                 void *user_data)
+{
+  if (connui_dbus_connect_path(connui_dbus_get_session(), path, function,
+                               user_data))
+  {
+    return TRUE;
+  }
+
+  CONNUI_ERR("Unable to register signal/method session call path");
+
+  return FALSE;
+}
+
+dbus_bool_t
+connui_dbus_disconnect_session_path(const char *path)
+{
+  return
+      dbus_connection_unregister_object_path(connui_dbus_get_session(), path);
+}
+
 static dbus_bool_t
 connui_dbus_register_service(DBusConnection *connection, const char *path,
                              const char *name, unsigned int flags,
@@ -188,6 +217,16 @@ connui_dbus_register_session_service(const char *path, const char *name,
                                       flags, function, user_data);
 }
 
+dbus_bool_t
+connui_dbus_register_system_service(const char *path, const char *name,
+                                    unsigned int flags,
+                                    DBusObjectPathMessageFunction function,
+                                    void *user_data)
+{
+  return connui_dbus_register_service(connui_dbus_get_system(), path, name,
+                                      flags, function, user_data);
+}
+
 static dbus_bool_t
 connui_dbus_libosso_application_activation(
     const char *path, const char *name, DBusObjectPathMessageFunction function,
@@ -211,4 +250,138 @@ connui_dbus_application_activation(const char *path, const char *name,
   CONNUI_ERR("Unable to register system bus signal/method call path");
 
   return FALSE;
+}
+
+dbus_bool_t
+connui_dbus_get_value_and_iterate(DBusMessageIter *iter, int type, void *value)
+{
+  if (dbus_message_iter_get_arg_type(iter) != type)
+    return FALSE;
+
+  dbus_message_iter_get_basic(iter, value);
+  dbus_message_iter_next(iter);
+
+  return TRUE;
+}
+
+static dbus_bool_t
+connui_dbus_connect_bcast_signal(DBusConnection *connection,
+                                 const char *interface,
+                                 DBusHandleMessageFunction function,
+                                 void *user_data, const char *signal)
+{
+  gchar *rule;
+  dbus_bool_t rv = FALSE;
+
+  if (dbus_connection_add_filter(connection, function, user_data, NULL))
+  {
+    if (signal)
+    {
+      rule =
+          g_strdup_printf("type='signal',interface='%s',%s", interface, signal);
+    }
+    else
+      rule = g_strdup_printf("type='signal',interface='%s'", interface);
+
+    if (rule)
+    {
+      DBusError error;
+
+      dbus_error_init(&error);
+      dbus_bus_add_match(connection, rule, &error);
+      g_free(rule);
+
+      if (dbus_error_is_set(&error))
+      {
+        CONNUI_ERR("Could not add match for broadcast signal: %s",
+                   error.message);
+      }
+      else
+        rv = TRUE;
+
+      dbus_error_free(&error);
+    }
+  }
+  else
+    CONNUI_ERR("Could not add filter");
+
+  return rv;
+}
+
+dbus_bool_t
+connui_dbus_connect_system_bcast_signal(const char *interface,
+                                        DBusHandleMessageFunction function,
+                                        void *user_data, const char *signal)
+{
+  return
+      connui_dbus_connect_bcast_signal(connui_dbus_get_system(), interface,
+                                       function, user_data, signal);
+}
+
+dbus_bool_t
+connui_dbus_connect_session_bcast_signal(const char *interface,
+                                         DBusHandleMessageFunction function,
+                                         void *user_data, const char *signal)
+{
+  return
+      connui_dbus_connect_bcast_signal(connui_dbus_get_session(), interface,
+                                       function, user_data, signal);
+}
+
+static dbus_bool_t
+connui_dbus_disconnect_bcast_signal(DBusConnection *connection,
+                                    const char *interface,
+                                    DBusHandleMessageFunction function,
+                                    void *user_data, const char *signal)
+{
+  gchar *rule;
+  DBusError error;
+
+  if (signal)
+  {
+    rule =
+        g_strdup_printf("type='signal',interface='%s',%s", interface, signal);
+  }
+  else
+    rule = g_strdup_printf("type='signal',interface='%s'", interface);
+
+  if (!rule)
+    return FALSE;
+
+  dbus_error_init(&error);
+  dbus_bus_remove_match(connection, rule, &error);
+  g_free(rule);
+
+  if (dbus_error_is_set(&error))
+  {
+    CONNUI_ERR("Could not remove match for broadcast signal: %s",
+               error.message);
+    dbus_error_free(&error);
+
+    return FALSE;
+  }
+
+  dbus_connection_remove_filter(connection, function, user_data);
+
+  return TRUE;
+}
+
+dbus_bool_t
+connui_dbus_disconnect_session_bcast_signal(const char *interface,
+                                            DBusHandleMessageFunction function,
+                                            void *user_data, const char *signal)
+{
+  return connui_dbus_disconnect_bcast_signal(connui_dbus_get_session(),
+                                             interface, function, user_data,
+                                             signal);
+}
+
+dbus_bool_t
+connui_dbus_disconnect_system_bcast_signal(const char *interface,
+                                           DBusHandleMessageFunction function,
+                                           void *user_data, const char *signal)
+{
+  return connui_dbus_disconnect_bcast_signal(connui_dbus_get_system(),
+                                             interface, function, user_data,
+                                             signal);
 }
