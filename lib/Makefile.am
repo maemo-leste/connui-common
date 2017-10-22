@@ -1,9 +1,9 @@
 lib_LTLIBRARIES = libconnui.la
 
 libconnui_la_CFLAGS =	$(CONNUI_CFLAGS) -I$(srcdir)/../include -Wall -Werror \
-			-DOSSOLOG_COMPILE=1
+			-DOSSOLOG_COMPILE=1 -Wno-format-extra-args
 libconnui_la_LDFLAGS = -avoid-version -Wl,--no-undefined
-libconnui_la_LIBADD = $(CONNUI_LIBS)
+libconnui_la_LIBADD = $(CONNUI_LIBS) -losso
 
 libconnui_la_SOURCES =	\
 			connui-dbus.c \

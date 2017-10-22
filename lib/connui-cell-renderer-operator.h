@@ -13,5 +13,6 @@
 typedef struct _ConnuiCellRendererOperator ConnuiCellRendererOperator;
 
 GType connui_cell_renderer_operator_get_type(void) G_GNUC_CONST;
+GtkCellRenderer *connui_cell_renderer_operator_new(void);
 
 #endif // CONNUI_CELL_RENDERER_OPERATOR_H

@@ -23,6 +23,19 @@ connui_pixbuf_cache_icon_theme_changed_cb(GtkIconTheme *icon_theme,
   }
 }
 
+void connui_pixbuf_cache_destroy(ConnuiPixbufCache *cache)
+{
+  if (cache)
+  {
+    g_signal_handlers_disconnect_matched(G_OBJECT(cache), G_SIGNAL_MATCH_DATA|G_SIGNAL_MATCH_FUNC, 0, 0, 0, connui_pixbuf_cache_icon_theme_changed_cb, cache);
+    if (cache->hash1)
+      g_hash_table_destroy(cache->hash1);
+    if (cache->hash2)
+      g_hash_table_destroy(cache->hash2);
+    g_free(cache);
+  }
+}
+
 ConnuiPixbufCache *connui_pixbuf_cache_new()
 {
   ConnuiPixbufCache *cache = g_new0(ConnuiPixbufCache, 1);
