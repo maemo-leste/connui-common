@@ -1,7 +1,7 @@
 #include <gtk/gtk.h>
 
 #include "connui-box-view.h"
-#include "connui-scan-box_view.h"
+#include "connui-scan-box-view.h"
 #include "connui-pixbuf-cache.h"
 
 struct _ConnuiScanBoxViewPrivate
@@ -29,6 +29,8 @@ G_DEFINE_TYPE(ConnuiScanBoxView, connui_scan_box_view, CONNUI_TYPE_BOX_VIEW);
 #else
 G_DEFINE_TYPE_WITH_PRIVATE(ConnuiScanBoxView, connui_scan_box_view, CONNUI_TYPE_BOX_VIEW);
 #endif
+
+void connui_scan_box_view_update_child(ConnuiBoxView *view, GtkWidget *hbutton, GtkTreeModel *model, GtkTreeIter *iter);
 
 static void
 connui_scan_box_view_dispose(GObject *object)

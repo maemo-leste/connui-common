@@ -4,6 +4,7 @@
 
 #include "connui-dbus.h"
 #include "connui-log.h"
+#include "connui-utils.h"
 
 static DBusConnection *system_bus = NULL;
 static DBusConnection *session_bus = NULL;
@@ -227,7 +228,7 @@ connui_dbus_register_system_service(const char *path, const char *name,
                                       flags, function, user_data);
 }
 
-static dbus_bool_t
+dbus_bool_t
 connui_dbus_libosso_application_activation(
     const char *path, const char *name, DBusObjectPathMessageFunction function,
     void *user_data)
@@ -384,4 +385,191 @@ connui_dbus_disconnect_system_bcast_signal(const char *interface,
   return connui_dbus_disconnect_bcast_signal(connui_dbus_get_system(),
                                              interface, function, user_data,
                                              signal);
+}
+
+DBusHandlerResult name_owner_changed_cb(DBusConnection *connection, DBusMessage *message, GSList **list)
+{
+  //todo
+  return DBUS_HANDLER_RESULT_HANDLED;
+}
+
+static dbus_bool_t
+connui_dbus_send_msg(DBusConnection *connection, DBusMessage *message)
+{
+  g_return_val_if_fail(connection != NULL, FALSE);
+  g_return_val_if_fail(message != NULL, FALSE);
+
+  int type = dbus_message_get_type(message);
+  if (type == DBUS_MESSAGE_TYPE_SIGNAL || type == DBUS_MESSAGE_TYPE_METHOD_RETURN || type == DBUS_MESSAGE_TYPE_ERROR)
+  {
+    dbus_connection_send(connection, message, 0);
+    return TRUE;
+  }
+  else
+  {
+    CONNUI_ERR("dbus message %p is not a signal, mcall return or error", message);
+    return FALSE;
+  }
+}
+
+dbus_bool_t connui_dbus_send_session_msg(DBusMessage *message)
+{
+  return connui_dbus_send_msg(connui_dbus_get_session(),message);
+}
+
+dbus_bool_t connui_dbus_send_system_msg(DBusMessage *message)
+{
+  return connui_dbus_send_msg(connui_dbus_get_system(),message);
+}
+
+static DBusMessage *
+connui_dbus_mcall_reply(DBusConnection *connection, DBusMessage *message)
+{
+  DBusMessage *ret;
+  DBusError error;
+  if (dbus_message_get_type(message) == DBUS_MESSAGE_TYPE_METHOD_CALL)
+  {
+    dbus_error_init(&error);
+    ret = dbus_connection_send_with_reply_and_block(connection, message, 5000, &error);
+    if (!ret)
+    {
+      CONNUI_ERR("Failed DBUS method call with error '%s': %s", error.name, error.message);
+      dbus_error_free(&error);
+    }
+  }
+  else
+  {
+    CONNUI_ERR("dbus message %p is not a method call", message);
+    ret = NULL;
+  }
+  return ret;
+}
+
+DBusMessage *connui_dbus_recv_reply_session_mcall(DBusMessage *message)
+{
+  return connui_dbus_mcall_reply(connui_dbus_get_session(),message);
+}
+
+DBusMessage *connui_dbus_recv_reply_system_mcall(DBusMessage *message)
+{
+  return connui_dbus_mcall_reply(connui_dbus_get_system(),message);
+}
+
+static dbus_bool_t
+connui_dbus_mcall_send(DBusConnection *connection, DBusMessage *mcall, int timeout, DBusPendingCallNotifyFunction notify, void *user_data, DBusPendingCall **call)
+{
+  DBusPendingCall *pending;
+  g_return_val_if_fail(connection != NULL, FALSE);
+  g_return_val_if_fail(mcall != NULL, FALSE);
+
+  if (dbus_message_get_type(mcall) != DBUS_MESSAGE_TYPE_METHOD_CALL)
+  {
+    CONNUI_ERR("dbus message %p is not a method call", mcall);
+    return FALSE;
+  }
+  if (notify)
+  {
+    if (!dbus_connection_send_with_reply(connection, mcall, &pending, timeout))
+    {
+      CONNUI_ERR("connui_dbus_send_message(): send with reply failed");
+      return 0;
+    }
+    if (!dbus_pending_call_set_notify(pending, notify, user_data, 0))
+    {
+      CONNUI_ERR("connui_dbus_send_message(): set notify failed");
+      dbus_pending_call_cancel(pending);
+      dbus_pending_call_unref(pending);
+      return 0;
+    }
+  }
+  else
+  {
+    dbus_message_set_no_reply(mcall, TRUE);
+    if (!dbus_connection_send(connection, mcall, 0))
+    {
+      CONNUI_ERR("connui_dbus_send_message(): send without reply failed");
+      return 0;
+    }
+  }
+  if (call)
+  {
+    return TRUE;
+    *call = pending;
+  }
+  else if (pending)
+  {
+    dbus_pending_call_unref(pending);
+    return TRUE;
+  }
+  else
+  {
+    return TRUE;
+  }
+}
+
+dbus_bool_t connui_dbus_send_session_mcall(DBusMessage *mcall, int timeout_milliseconds, DBusPendingCallNotifyFunction notify, void *user_data, DBusPendingCall **call)
+{
+  return connui_dbus_mcall_send(connui_dbus_get_session(), mcall, timeout_milliseconds, notify, user_data, call);
+}
+
+dbus_bool_t connui_dbus_send_system_mcall(DBusMessage *mcall, int timeout_milliseconds, DBusPendingCallNotifyFunction notify, void *user_data, DBusPendingCall **call)
+{
+  return connui_dbus_mcall_send(connui_dbus_get_system(), mcall, timeout_milliseconds, notify, user_data, call);
+}
+
+GSList **connui_dbus_watchers;
+
+void connui_dbus_unregister_watcher(connui_dbus_watcher callback, const gchar *match)
+{
+  GSList **list;
+  gchar *str;
+  list = connui_dbus_watchers;
+  if (connui_dbus_watchers)
+  {
+    *list = connui_utils_notify_remove(*connui_dbus_watchers, (connui_utils_notify)callback);
+    str = g_strdup_printf("member='NameOwnerChanged',arg0='%s'", match);
+    if (str)
+    {
+      connui_dbus_disconnect_system_bcast_signal("org.freedesktop.DBus",(DBusHandleMessageFunction)name_owner_changed_cb,&connui_dbus_watchers,str);
+      g_free(str);
+      if (!*connui_dbus_watchers)
+      {
+        g_free(connui_dbus_watchers);
+        connui_dbus_watchers = 0;
+      }
+    }
+  }
+}
+
+dbus_bool_t connui_dbus_register_watcher(connui_dbus_watcher callback, gpointer user_data, const gchar *match)
+{
+  gchar *str;
+  dbus_bool_t result;
+
+  if (!connui_dbus_watchers)
+    connui_dbus_watchers = (GSList **)g_malloc0(4);
+  *connui_dbus_watchers = connui_utils_notify_add(*connui_dbus_watchers, (connui_utils_notify)callback, user_data);
+  str = g_strdup_printf("member='NameOwnerChanged',arg0='%s'", match);
+  if (str && connui_dbus_connect_system_bcast_signal("org.freedesktop.DBus",(DBusHandleMessageFunction)name_owner_changed_cb,&connui_dbus_watchers,str))
+  {
+    g_free(str);
+    result = TRUE;
+  }
+  else
+  {
+    CONNUI_ERR("unable to register DBUS watcher signal");
+    *connui_dbus_watchers = connui_utils_notify_remove(*connui_dbus_watchers, (connui_utils_notify)callback);
+    g_free(str);
+    if (*connui_dbus_watchers)
+    {
+      result = FALSE;
+    }
+    else
+    {
+      g_free(connui_dbus_watchers);
+      result = FALSE;
+      connui_dbus_watchers = 0;
+    }
+  }
+  return result;
 }

@@ -2,6 +2,11 @@
 
 #include "connui-cell-renderer-operator.h"
 
+void connui_cell_renderer_operator_get_size(GtkCellRenderer *cell, GtkWidget *widget, GdkRectangle *cell_area, gint *x_offset, gint *y_offset, gint *width, gint *height);
+void connui_cell_renderer_operator_render(GtkCellRenderer *cell, GdkDrawable *window, GtkWidget *widget, GdkRectangle *background_area, GdkRectangle *cell_area, GdkRectangle *expose_area, GtkCellRendererState flags);
+void set_service_type_and_id(ConnuiCellRendererOperator *self, const gchar *service_type, const gchar *service_id);
+int set_service_properties(ConnuiCellRendererOperator *self);
+
 enum
 {
   PROP_0,

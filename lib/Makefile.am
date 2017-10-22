@@ -11,6 +11,7 @@ libconnui_la_SOURCES =	\
 			connui-cell-renderer-operator.c \
 			connui-pixbuf-cache.c \
 			connui-box-view.c \
-			connui-scan-box_view.c
+			connui-scan-box-view.c \
+			connui-utils.c
 
 MAINTAINERCLEANFILES = Makefile.in
