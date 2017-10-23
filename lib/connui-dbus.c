@@ -8,6 +8,7 @@
 
 static DBusConnection *system_bus = NULL;
 static DBusConnection *session_bus = NULL;
+static GSList **connui_dbus_watchers = NULL;
 
 void
 connui_dbus_close()
@@ -391,8 +392,36 @@ static DBusHandlerResult
 name_owner_changed_cb(DBusConnection *connection, DBusMessage *message,
                       void *user_data)
 {
-  //todo
-  return DBUS_HANDLER_RESULT_HANDLED;
+  GSList **list = *(GSList ***)user_data;;
+  DBusError error;
+  const gchar *new_owner = NULL;
+  const gchar *old_owner = NULL;
+  const gchar *name = NULL;
+
+  if (!message || !list || !*list ||
+      !dbus_message_is_signal(message,
+                              "org.freedesktop.DBus",
+                              "NameOwnerChanged"))
+  {
+    return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
+  }
+
+  dbus_error_init(&error);
+
+  if (dbus_message_get_args(message, &error,
+                            DBUS_TYPE_STRING, &name,
+                            DBUS_TYPE_STRING, &old_owner,
+                            DBUS_TYPE_STRING, &new_owner,
+                            DBUS_TYPE_INVALID))
+  {
+    connui_utils_notify_notify(*list, &name, &old_owner, &new_owner, NULL);
+    return DBUS_HANDLER_RESULT_HANDLED ;
+  }
+
+  CONNUI_ERR("Could not get arguments from NameOwnerChanged signal");
+  dbus_error_free(&error);
+
+  return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
 }
 
 static dbus_bool_t
@@ -518,8 +547,6 @@ dbus_bool_t connui_dbus_send_system_mcall(DBusMessage *mcall, int timeout_millis
 {
   return connui_dbus_mcall_send(connui_dbus_get_system(), mcall, timeout_milliseconds, notify, user_data, call);
 }
-
-GSList **connui_dbus_watchers;
 
 void
 connui_dbus_unregister_watcher(connui_dbus_watcher callback, const gchar *match)
