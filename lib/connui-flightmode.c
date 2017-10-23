@@ -159,7 +159,7 @@ gboolean connui_flightmode_status(connui_flightmode_notify callback,gpointer use
   }
   else
   {
-    *data = (struct GlobalDataStruct *)g_malloc0(8);
+    *data = g_new0(struct GlobalDataStruct, 1);
     (*data)->list = connui_utils_notify_add((*data)->list, (connui_utils_notify)callback, user_data);
     if ( !connui_dbus_connect_system_bcast_signal(MCE_SIGNAL_IF, (DBusHandleMessageFunction)connui_flightmode_device_mode_changed_cb, data, "member='sig_device_mode_ind'"))
     {

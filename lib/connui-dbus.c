@@ -387,7 +387,9 @@ connui_dbus_disconnect_system_bcast_signal(const char *interface,
                                              signal);
 }
 
-DBusHandlerResult name_owner_changed_cb(DBusConnection *connection, DBusMessage *message, GSList **list)
+static DBusHandlerResult
+name_owner_changed_cb(DBusConnection *connection, DBusMessage *message,
+                      void *user_data)
 {
   //todo
   return DBUS_HANDLER_RESULT_HANDLED;
@@ -519,38 +521,51 @@ dbus_bool_t connui_dbus_send_system_mcall(DBusMessage *mcall, int timeout_millis
 
 GSList **connui_dbus_watchers;
 
-void connui_dbus_unregister_watcher(connui_dbus_watcher callback, const gchar *match)
+void
+connui_dbus_unregister_watcher(connui_dbus_watcher callback, const gchar *match)
 {
-  GSList **list;
   gchar *str;
-  list = connui_dbus_watchers;
+
   if (connui_dbus_watchers)
   {
-    *list = connui_utils_notify_remove(*connui_dbus_watchers, (connui_utils_notify)callback);
+    *connui_dbus_watchers =
+        connui_utils_notify_remove(*connui_dbus_watchers, callback);
     str = g_strdup_printf("member='NameOwnerChanged',arg0='%s'", match);
+
     if (str)
     {
-      connui_dbus_disconnect_system_bcast_signal("org.freedesktop.DBus",(DBusHandleMessageFunction)name_owner_changed_cb,&connui_dbus_watchers,str);
+      connui_dbus_disconnect_system_bcast_signal("org.freedesktop.DBus",
+                                                 name_owner_changed_cb,
+                                                 &connui_dbus_watchers,
+                                                 str);
       g_free(str);
+
       if (!*connui_dbus_watchers)
       {
         g_free(connui_dbus_watchers);
-        connui_dbus_watchers = 0;
+        connui_dbus_watchers = NULL;
       }
     }
   }
 }
 
-dbus_bool_t connui_dbus_register_watcher(connui_dbus_watcher callback, gpointer user_data, const gchar *match)
+dbus_bool_t
+connui_dbus_register_watcher(connui_dbus_watcher callback, gpointer user_data,
+                             const gchar *match)
 {
   gchar *str;
   dbus_bool_t result;
 
   if (!connui_dbus_watchers)
-    connui_dbus_watchers = (GSList **)g_malloc0(4);
-  *connui_dbus_watchers = connui_utils_notify_add(*connui_dbus_watchers, (connui_utils_notify)callback, user_data);
+    connui_dbus_watchers = g_new0(GSList *, 1);
+
+  *connui_dbus_watchers = connui_utils_notify_add(*connui_dbus_watchers,
+                                                  callback, user_data);
   str = g_strdup_printf("member='NameOwnerChanged',arg0='%s'", match);
-  if (str && connui_dbus_connect_system_bcast_signal("org.freedesktop.DBus",(DBusHandleMessageFunction)name_owner_changed_cb,&connui_dbus_watchers,str))
+
+  if (str && connui_dbus_connect_system_bcast_signal("org.freedesktop.DBus",
+                                                     name_owner_changed_cb,
+                                                     &connui_dbus_watchers,str))
   {
     g_free(str);
     result = TRUE;
@@ -558,12 +573,12 @@ dbus_bool_t connui_dbus_register_watcher(connui_dbus_watcher callback, gpointer 
   else
   {
     CONNUI_ERR("unable to register DBUS watcher signal");
-    *connui_dbus_watchers = connui_utils_notify_remove(*connui_dbus_watchers, (connui_utils_notify)callback);
+    *connui_dbus_watchers = connui_utils_notify_remove(*connui_dbus_watchers,
+                                                       callback);
     g_free(str);
+
     if (*connui_dbus_watchers)
-    {
       result = FALSE;
-    }
     else
     {
       g_free(connui_dbus_watchers);
@@ -571,5 +586,6 @@ dbus_bool_t connui_dbus_register_watcher(connui_dbus_watcher callback, gpointer 
       connui_dbus_watchers = 0;
     }
   }
+
   return result;
 }
