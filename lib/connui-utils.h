@@ -2,6 +2,11 @@
 #define CONNUI_UTILS_H
 
 typedef void (*connui_utils_notify) ();
+struct GlobalDataStruct
+{
+  GSList *list;
+  DBusPendingCall *call;
+};
 
 GSList *connui_utils_find_callback(GSList *list,connui_utils_notify notify);
 osso_context_t *connui_utils_inherit_osso_context(osso_context_t *lib_osso, const gchar *application, const gchar *version);

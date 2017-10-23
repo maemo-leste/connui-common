@@ -12,6 +12,7 @@ libconnui_la_SOURCES =	\
 			connui-pixbuf-cache.c \
 			connui-box-view.c \
 			connui-scan-box-view.c \
-			connui-utils.c
+			connui-utils.c \
+                        connui-flightmode.c
 
 MAINTAINERCLEANFILES = Makefile.in
