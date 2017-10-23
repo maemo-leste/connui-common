@@ -73,35 +73,33 @@ connui_utils_unblank_display()
 }
 
 GSList *
-connui_utils_notify_remove(GSList *list, connui_utils_notify notify)
+connui_utils_notify_remove(GSList *list, connui_utils_notify callback)
 {
-  GSList *iterator;
-  connui_utils_notify *cb;
+  GSList *l;
   GSList *temp;
 
   if (list)
   {
-    iterator = list;
+    connui_notifier *notify;
+
+    l = list;
 
     for (;;)
     {
-      cb = (connui_utils_notify *)iterator->data;
+      notify = (connui_notifier *)l->data;
 
-      if (iterator->data)
-      {
-        if (*cb == notify)
-          break;
-      }
+      if (notify && notify->callback == callback)
+        break;
 
-      iterator = iterator->next;
+      l = l->next;
 
-      if (!iterator)
+      if (!l)
         return list;
     }
 
-    temp = g_slist_remove_link(list, iterator);
-    g_free(cb);
-    g_slist_free(iterator);
+    temp = g_slist_remove_link(list, l);
+    g_free(notify);
+    g_slist_free(l);
     list = temp;
   }
 
