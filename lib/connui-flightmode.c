@@ -45,7 +45,7 @@ static void connui_flightmode_do_caller_cb(const char *status, struct GlobalData
 {
   g_return_if_fail(status != NULL && info != NULL && *info != NULL);
 
-  int first_arg = (strcmp(status, "flight") == 0);
+  int first_arg = (strcmp(status, MCE_FLIGHT_MODE) == 0);
   if ((*info)->list)
     connui_utils_notify_notify((*info)->list, &first_arg, 0);
 }

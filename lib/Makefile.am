@@ -13,6 +13,7 @@ libconnui_la_SOURCES =	\
 			connui-box-view.c \
 			connui-scan-box-view.c \
 			connui-utils.c \
-                        connui-flightmode.c
+                        connui-flightmode.c \
+                        connui-devicelock.c
 
 MAINTAINERCLEANFILES = Makefile.in
