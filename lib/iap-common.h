@@ -25,8 +25,9 @@ struct scan_entry
 	GSList *list;
 };
 
-GtkWidget 
-*iap_common_show_saved_not_found_banner(GtkWidget *widget);
+dbus_bool_t iap_common_activate_iap(const gchar *iap);
+void iap_network_entry_clear(struct network_entry *network);
+GtkWidget *iap_common_show_saved_not_found_banner(GtkWidget *widget);
 void iap_common_pack_to_hildon_button(GtkWidget *hbutton,GtkWidget *child,gboolean expand,gboolean fill);
 
 #endif // IAP_COMMON_H

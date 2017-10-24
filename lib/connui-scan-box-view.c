@@ -1,3 +1,4 @@
+#include <dbus/dbus.h>
 #include <gtk/gtk.h>
 #include <libintl.h>
 #include <hildon/hildon.h>
