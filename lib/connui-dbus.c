@@ -1,6 +1,4 @@
-#include <dbus/dbus.h>
 #include <dbus/dbus-glib-lowlevel.h>
-#include <libosso.h>
 
 #include "connui-dbus.h"
 #include "connui-log.h"

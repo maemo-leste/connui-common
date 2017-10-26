@@ -1,6 +1,9 @@
 #ifndef CONNUI_DBUS_H
 #define CONNUI_DBUS_H
 
+#include <libosso.h>
+#include <dbus/dbus.h>
+
 typedef void (*connui_dbus_watcher) (gchar *name,gchar *old_owner,gchar *new_owner,gpointer user_data);
 
 osso_return_t connui_dbus_activate_app(osso_context_t *osso, const gchar *application);
