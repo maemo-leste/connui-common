@@ -7,7 +7,9 @@
 #include "connui-box-view.h"
 #include "connui-scan-box-view.h"
 #include "connui-pixbuf-cache.h"
+
 #include "iap-common.h"
+#include "iap-network.h"
 
 struct _ConnuiScanBoxViewPrivate
 {
@@ -58,7 +60,7 @@ static void connui_scan_box_view_update_child(ConnuiBoxView *view, GtkWidget *hb
   gchararray icon1 = 0;
   gchararray icon2 = 0;
   gchararray icon3 = 0;
-  struct network_entry *entry = 0;
+  network_entry *entry = 0;
   gboolean can_disconnect;
   ConnuiScanBoxViewPrivate *priv = CONNUI_SCAN_BOX_VIEW(view)->priv;
   gtk_tree_model_get(model, iter, 0, &icon1, 4, &title, 7, &icon2, 9, &icon3, 10, &entry, 11, &can_disconnect, -1);

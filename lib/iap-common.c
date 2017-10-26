@@ -5,6 +5,8 @@
 #include <libosso.h>
 
 #include "iap-common.h"
+#include "iap-network.h"
+
 #include "connui-dbus.h"
 #include "connui-log.h"
 
@@ -67,7 +69,7 @@ iap_common_activate_iap(const gchar *iap)
 }
 
 void
-iap_common_get_last_used_network(struct network_entry *network)
+iap_common_get_last_used_network(network_entry *network)
 {
   GConfClient *gconf_client;
   GError *error = NULL;
@@ -107,25 +109,23 @@ iap_common_get_last_used_network(struct network_entry *network)
   }
 }
 
-void
-iap_network_entry_clear(struct network_entry *network)
+gchar *
+iap_common_get_service_gconf_path(const gchar *service_type,
+                                  const gchar *service_id)
 {
-  if (!network)
-    return;
+  gchar *service_type_escaped;
+  gchar *service_id_escaped;
+  gchar *gconf_path;
 
-  g_free(network->service_type);
-  network->service_type = NULL;
+  service_type_escaped = gconf_escape_key(service_type, -1);
+  service_id_escaped = gconf_escape_key(service_id, -1);
+  gconf_path = g_strconcat("/system/osso/connectivity/srv_provider", "/",
+                           service_type_escaped,
+                           "/custom_ui/",
+                           service_id_escaped,
+                           NULL);
+  g_free(service_type_escaped);
+  g_free(service_id_escaped);
 
-  network->service_attributes = 0;
-
-  g_free(network->service_id);
-  network->service_id = NULL;
-
-  g_free(network->network_type);
-  network->network_type = NULL;
-
-  network->network_attributes = 0;
-
-  g_free(network->network_id);
-  network->network_id = NULL;
+  return gconf_path;
 }

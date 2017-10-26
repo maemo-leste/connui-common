@@ -8,12 +8,13 @@ libconnui_la_LIBADD = $(CONNUI_LIBS) -losso
 libconnui_la_SOURCES =	\
 			connui-dbus.c \
 			iap-common.c \
+			iap-network.c \
 			connui-cell-renderer-operator.c \
 			connui-pixbuf-cache.c \
 			connui-box-view.c \
 			connui-scan-box-view.c \
 			connui-utils.c \
-                        connui-flightmode.c \
-                        connui-devicelock.c
+			connui-flightmode.c \
+			connui-devicelock.c
 
 MAINTAINERCLEANFILES = Makefile.in
