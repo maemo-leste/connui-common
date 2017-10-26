@@ -6,10 +6,10 @@
 struct _network_entry
 {
 	gchar *service_type;
-	int service_attributes;
+	dbus_uint32_t service_attributes;
 	gchar *service_id;
 	gchar *network_type;
-	int network_attributes;
+	dbus_uint32_t network_attributes;
 	gchar *network_id;
 };
 typedef struct _network_entry network_entry;
@@ -29,5 +29,7 @@ struct scan_entry
 };
 
 void iap_network_entry_clear(network_entry *network);
+int iap_network_entry_service_compare(network_entry *network1, network_entry *network2);
+gboolean iap_network_entry_to_dbus_iter(DBusMessageIter *iter,  network_entry *entry);
 
 #endif // IAPNETWORK_H
