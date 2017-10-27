@@ -5,7 +5,6 @@
 #include <libosso.h>
 
 #include "iap-common.h"
-#include "iap-network.h"
 
 #include "connui-dbus.h"
 #include "connui-log.h"
@@ -109,6 +108,59 @@ iap_common_get_last_used_network(network_entry *network)
   }
 }
 
+gboolean
+iap_common_set_last_used_network(network_entry *entry)
+{
+  GConfClient *gconf_client;
+  GError *error = NULL;
+
+  gconf_client = gconf_client_get_default();
+
+  g_return_val_if_fail(gconf_client != NULL, FALSE);
+
+  if (entry && entry->network_type && entry->network_id)
+  {
+    gconf_client_set_string(gconf_client,
+                            "/system/osso/connectivity/IAP/last_used_type",
+                            entry->network_type, &error);
+    if (error)
+      goto err;
+
+    gconf_client_set_int(gconf_client,
+                         "/system/osso/connectivity/IAP/last_used_attrs",
+                         entry->network_attributes, &error);
+
+    if (error)
+      goto err;
+
+    gconf_client_set_string(gconf_client,
+                            "/system/osso/connectivity/IAP/last_used_network",
+                            entry->network_id, &error);
+  }
+  else
+  {
+    gconf_client_unset(gconf_client,
+                       "/system/osso/connectivity/IAP/last_used_type", NULL);
+    gconf_client_unset(gconf_client,
+                       "/system/osso/connectivity/IAP/last_used_attrs", NULL);
+    gconf_client_unset(gconf_client,
+                       "/system/osso/connectivity/IAP/last_used_network", NULL);
+  }
+
+  if (!error)
+  {
+    g_object_unref(gconf_client);
+    return TRUE;
+  }
+
+err:
+  CONNUI_ERR("could not set last used iap: '%s'", error->message);
+  g_error_free(error);
+  g_object_unref(gconf_client);
+
+  return FALSE;
+}
+
 gchar *
 iap_common_get_service_gconf_path(const gchar *service_type,
                                   const gchar *service_id)
@@ -128,4 +180,72 @@ iap_common_get_service_gconf_path(const gchar *service_type,
   g_free(service_id_escaped);
 
   return gconf_path;
+}
+
+static gboolean
+delete_event_cb(GtkWidget *widget, GdkEvent *event, gpointer user_data)
+{
+  gtk_dialog_response(GTK_DIALOG(widget), GPOINTER_TO_INT(user_data));
+
+  return TRUE;
+}
+
+void
+iap_common_set_close_response(GtkWidget *widget, gint response_id)
+{
+  g_signal_connect(G_OBJECT(widget), "close", G_CALLBACK(gtk_dialog_response),
+                   GINT_TO_POINTER(response_id));
+  g_signal_connect(G_OBJECT(widget), "delete-event",
+                   G_CALLBACK(delete_event_cb), GINT_TO_POINTER(response_id));
+}
+
+gboolean
+iap_common_get_preferred_service(gchar **preferred_type, gchar **preferred_id)
+{
+  GConfClient *gconf_client;
+  gchar *_preferred_type = NULL;
+  gchar *_preferred_id = NULL;
+
+  gconf_client = gconf_client_get_default();
+
+  if (!gconf_client)
+  {
+    CONNUI_ERR("Unable to get GConf client!");
+    return FALSE;
+  }
+
+  _preferred_type = gconf_client_get_string(
+        gconf_client, "/system/osso/connectivity/srv_provider/preferred_type",
+        NULL);
+
+  if (!_preferred_type)
+    goto err;
+
+  _preferred_id = gconf_client_get_string(
+        gconf_client, "/system/osso/connectivity/srv_provider/preferred_id",
+        NULL);
+
+  if (!_preferred_id)
+    goto err;
+
+  g_object_unref(gconf_client);
+
+  if (preferred_id)
+    *preferred_id = _preferred_id;
+  else
+    g_free(_preferred_id);
+
+  if (preferred_type)
+    *preferred_type = _preferred_type;
+  else
+    g_free(_preferred_type);
+
+  return TRUE;
+
+err:
+  g_object_unref(gconf_client);
+  g_free(_preferred_id);
+  g_free(_preferred_type);
+
+  return FALSE;
 }

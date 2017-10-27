@@ -9,7 +9,6 @@
 #include "connui-pixbuf-cache.h"
 
 #include "iap-common.h"
-#include "iap-network.h"
 
 struct _ConnuiScanBoxViewPrivate
 {
