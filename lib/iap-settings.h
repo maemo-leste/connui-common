@@ -24,5 +24,6 @@ gboolean iap_settings_iap_is_easywlan(const gchar *iap_name);
 gboolean iap_settings_remove_iap(const gchar *iap_name);
 GConfValue *iap_settings_get_gconf_value(const gchar *iap, const gchar *key);
 gchar *iap_settings_get_name(const gchar *iap);
+gchar *iap_settings_get_wlan_ssid(const gchar *iap);
 
 #endif // IAPSETTINGS_H

@@ -7,6 +7,7 @@
 #include "connui-log.h"
 #include "iap-common.h"
 #include "iap-settings.h"
+#include "wlan-common.h"
 
 gchar *
 iap_settings_create_iap_id()
@@ -289,6 +290,22 @@ read_value:
   return value;
 }
 
+static gchar *
+get_iap_name_by_type(const gchar *type)
+{
+  if (!type)
+    return NULL;
+
+  if (!strncmp(type, "WIMAX", 5))
+    return g_strdup("Unknown WIMAX network");
+
+  if (strncmp(type, "GPRS", 4))
+    return NULL;
+
+  return g_strdup(dgettext("osso-connectivity-ui",
+                           "conn_va_placeholder_iap_name"));
+}
+
 gchar *
 iap_settings_get_name(const gchar *iap)
 {
@@ -377,4 +394,34 @@ iap_settings_get_name(const gchar *iap)
   }
 
   return g_strdup(iap);
+}
+
+gchar *
+iap_settings_get_wlan_ssid(const gchar *iap)
+{
+  GConfValue *val = iap_settings_get_gconf_value(iap, "wlan_ssid");
+  gchar *ssid = NULL;
+
+  if (!val)
+    return NULL;
+
+  if (val->type == GCONF_VALUE_LIST &&
+      gconf_value_get_list_type(val) == GCONF_VALUE_INT)
+  {
+    int i = 0;
+    GSList *l = gconf_value_get_list(val);
+
+    ssid = g_new0(gchar, g_slist_length(l) + 1);
+
+    for (l = gconf_value_get_list(val); l; i++, l = l->next)
+      ssid[i] = gconf_value_get_int(l->data);
+  }
+  else if (val->type == GCONF_VALUE_STRING)
+    ssid = g_strdup(gconf_value_get_string(val));
+  else
+    CONNUI_ERR("SSID value for IAP %s in unknown format", iap);
+
+  gconf_value_free(val);
+
+  return ssid;
 }

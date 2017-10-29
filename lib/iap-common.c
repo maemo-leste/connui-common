@@ -8,6 +8,7 @@
 
 #include "connui-dbus.h"
 #include "connui-log.h"
+#include "iap-settings.h"
 
 GtkWidget *
 iap_common_show_saved_not_found_banner(GtkWidget *widget)
@@ -269,7 +270,7 @@ iap_common_make_connection(const gchar *iap, network_entry *entry)
   g_free(iap_name);
 
   gtk_misc_set_alignment(GTK_MISC(label), 0.0, 0.0);
-  g_object_set(G_OBJECT(label), "ellipsize", 3, "wrap", 1, 0);
+  g_object_set(G_OBJECT(label), "ellipsize", 3, "wrap", 1, NULL);
   image = gtk_image_new();
   hbox = gtk_hbox_new(0, 0);
   gtk_box_pack_start(GTK_BOX(hbox), image, 0, 0, 0);

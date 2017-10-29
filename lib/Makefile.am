@@ -7,6 +7,7 @@ libconnui_la_LIBADD = $(CONNUI_LIBS) -losso
 
 libconnui_la_SOURCES =	\
 			connui-dbus.c \
+			wlan-common.c \
 			iap-settings.c \
 			iap-common.c \
 			iap-network.c \
