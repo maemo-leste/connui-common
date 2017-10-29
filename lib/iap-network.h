@@ -2,6 +2,7 @@
 #define IAPNETWORK_H
 
 #include <gtk/gtk.h>
+#include <dbus/dbus.h>
 
 struct _network_entry
 {

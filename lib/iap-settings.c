@@ -1,4 +1,3 @@
-#include <dbus/dbus.h>
 #include <gconf/gconf-client.h>
 
 #include <string.h>
