@@ -25,5 +25,6 @@ gboolean iap_settings_remove_iap(const gchar *iap_name);
 GConfValue *iap_settings_get_gconf_value(const gchar *iap, const gchar *key);
 gchar *iap_settings_get_name(const gchar *iap);
 gchar *iap_settings_get_wlan_ssid(const gchar *iap);
+gchar *iap_settings_get_name_by_network(network_entry *entry, const gchar *name1, const gchar *name2);
 
 #endif // IAPSETTINGS_H

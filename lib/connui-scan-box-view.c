@@ -83,7 +83,7 @@ static void connui_scan_box_view_update_child(ConnuiBoxView *view, GtkWidget *hb
         {
           if (entry->network_attributes & 0x1000)
           {
-            hildon_button_set_value(HILDON_BUTTON(hbutton), dcgettext("osso-connectivity-ui", "conn_va_wps_complient", 5));
+            hildon_button_set_value(HILDON_BUTTON(hbutton), dgettext("osso-connectivity-ui", "conn_va_wps_complient"));
           }
         }
       }

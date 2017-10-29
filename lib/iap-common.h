@@ -12,5 +12,6 @@ gchar *iap_common_get_service_gconf_path(const gchar *service_type, const gchar 
 void iap_common_set_close_response(GtkWidget *widget, gint response_id);
 gboolean iap_common_get_preferred_service(gchar **preferred_type, gchar **preferred_id);
 GtkWidget *iap_common_make_connection_entry(const gchar *iap);
+void iap_common_get_service_properties(gchar *service_type, gchar *service_id, gchar *prop_name, ...);
 
 #endif // IAP_COMMON_H

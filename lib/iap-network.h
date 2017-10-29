@@ -34,5 +34,6 @@ gboolean iap_network_entry_to_dbus_iter(DBusMessageIter *iter,  network_entry *e
 network_entry *iap_network_entry_dup(network_entry *entry);
 gboolean iap_network_entry_from_dbus_iter(DBusMessageIter *iter, network_entry *entry);
 gboolean iap_network_entry_disconnect(guint connection_flags, network_entry *entry);
+gboolean iap_network_entry_is_saved(network_entry *entry);
 
 #endif // IAPNETWORK_H

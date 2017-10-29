@@ -425,3 +425,95 @@ iap_settings_get_wlan_ssid(const gchar *iap)
 
   return ssid;
 }
+
+gchar *
+iap_settings_get_name_by_network(network_entry *entry, const gchar *name1,
+                                 const gchar *name2)
+{
+  gchar *name;
+  GConfValue *val;
+
+  if (!entry)
+    return NULL;
+
+  if (entry->service_type && *entry->service_type &&
+      entry->service_id &&*entry->service_id)
+  {
+    gchar *msgid = NULL;
+    gchar *domainname = NULL;
+
+    iap_common_get_service_properties(entry->service_type,
+                                      entry->service_id,
+                                      "gettext_catalog", &domainname,
+                                      "name", &msgid,
+                                      NULL);
+    name = msgid;
+
+    if (msgid)
+    {
+      if (!domainname)
+        return name;
+
+      name = g_strdup(dgettext(domainname, msgid));
+    }
+    else
+    {
+      if (!domainname || !name1)
+      {
+        g_free(msgid);
+        g_free(domainname);
+try_name1:
+
+        if (name1 && *name1)
+          return g_strdup(name1);
+
+        goto try_name2;
+      }
+
+      name = g_strdup(dgettext(domainname, name1));
+    }
+
+    g_free(msgid);
+    g_free(domainname);
+
+    if (name)
+      return name;
+
+    goto try_name1;
+  }
+
+try_name2:
+  if (name2 && *name2)
+    return g_strdup(name2);
+
+  if (entry->network_type && !strcmp(entry->network_type, "WLAN_INFRA"))
+  {
+    if (!entry->network_id || !*entry->network_id)
+      return g_strdup(dgettext("osso-connectivity-ui", "conn_fi_hidden_wlan"));
+  }
+
+  val = iap_settings_get_gconf_value(entry->network_id, "name");
+
+  if (val)
+  {
+    name = g_strdup(gconf_value_get_string(val));
+    gconf_value_free(val);
+
+    return name;
+  }
+
+  if ((name = get_iap_name_by_type(entry->network_type)))
+    return name;
+
+  if (entry->network_type && !strncmp(entry->network_type, "WLAN_", 5) &&
+      (name = iap_settings_get_wlan_ssid(entry->network_id)))
+  {
+    wlan_common_mangle_ssid(name, strlen(name));
+  }
+  else if (is_mobile_internet(entry->network_id))
+    name = gconf_unescape_key(entry->network_id, -1);
+  else
+    name = g_strdup(entry->network_id);
+
+  return name;
+}

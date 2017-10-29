@@ -284,3 +284,63 @@ iap_common_make_connection_entry(const gchar *iap)
 {
   return iap_common_make_connection(iap, NULL);
 }
+
+void
+iap_common_get_service_properties(gchar *service_type, gchar *service_id,
+                                  gchar *prop_name, ...)
+{
+  GConfClient *gconf;
+  gchar *gconf_path;
+  va_list ap;
+
+  g_return_if_fail(service_type != NULL && service_id != NULL);
+
+  if (!(gconf = gconf_client_get_default()))
+  {
+    CONNUI_ERR("Unable to get GConfClient");
+    return;
+  }
+
+  if (!prop_name)
+    return;
+
+  gconf_path = iap_common_get_service_gconf_path(service_type, service_id);
+
+  if (!gconf_path)
+  {
+    g_object_unref(gconf);
+    return;
+  }
+
+  if (gconf_client_dir_exists(gconf, gconf_path, NULL))
+  {
+    va_start(ap, prop_name);
+
+    while (1)
+    {
+      gchar **prop = va_arg(ap, gchar **);
+      gchar *s;
+
+      if (!prop)
+      {
+        CONNUI_ERR("Wrong parameters to iap_settings_get_service_properties!");
+        break;
+      }
+
+      s = g_strconcat(gconf_path, "/", prop_name, NULL);
+
+      *prop = gconf_client_get_string(gconf, s, NULL);
+      g_free(s);
+
+      prop_name = va_arg(ap, gchar *);
+
+      if (!prop_name)
+        break;
+    }
+
+    va_end(ap);
+  }
+
+  g_free(gconf_path);
+  g_object_unref(gconf);
+}

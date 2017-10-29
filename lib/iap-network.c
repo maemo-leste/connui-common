@@ -4,6 +4,7 @@
 
 #include "connui-dbus.h"
 #include "iap-network.h"
+#include "iap-settings.h"
 
 void
 iap_network_entry_clear(network_entry *network)
@@ -210,4 +211,28 @@ iap_network_entry_disconnect(guint connection_flags, network_entry *entry)
     return FALSE;
 
   return TRUE;
+}
+
+gboolean
+iap_network_entry_is_saved(network_entry *entry)
+{
+  g_return_val_if_fail(entry != NULL, FALSE);
+
+  if (entry->network_attributes & 0x1000000)
+  {
+    GConfValue *val =
+        iap_settings_get_gconf_value(entry->network_id, "temporary");
+
+    if (val)
+    {
+      gboolean temporary = gconf_value_get_bool(val);
+
+      gconf_value_free(val);
+      return !temporary;
+    }
+
+    return TRUE;
+  }
+
+  return FALSE;
 }
