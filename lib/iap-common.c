@@ -249,3 +249,37 @@ err:
 
   return FALSE;
 }
+
+static GtkWidget *
+iap_common_make_connection(const gchar *iap, network_entry *entry)
+{
+  gchar *iap_name;
+  GtkWidget *label;
+  GtkWidget *image;
+  GtkWidget *hbox;
+
+  if (iap)
+    iap_name = iap_settings_get_name(iap);
+  else if (entry)
+    iap_name = iap_settings_get_name_by_network(entry, NULL, iap);
+  else
+    iap_name = NULL;
+
+  label = gtk_label_new(iap_name);
+  g_free(iap_name);
+
+  gtk_misc_set_alignment(GTK_MISC(label), 0.0, 0.0);
+  g_object_set(G_OBJECT(label), "ellipsize", 3, "wrap", 1, 0);
+  image = gtk_image_new();
+  hbox = gtk_hbox_new(0, 0);
+  gtk_box_pack_start(GTK_BOX(hbox), image, 0, 0, 0);
+  gtk_box_pack_start(GTK_BOX(hbox), label, 1, 1, 0);
+
+  return hbox;
+}
+
+GtkWidget *
+iap_common_make_connection_entry(const gchar *iap)
+{
+  return iap_common_make_connection(iap, NULL);
+}
