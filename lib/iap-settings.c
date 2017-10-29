@@ -516,3 +516,88 @@ try_name2:
 
   return name;
 }
+
+gchar *
+iap_settings_get_iap_icon_name_by_network(network_entry *entry)
+{
+  g_return_val_if_fail(entry != NULL, NULL);
+
+  return iap_settings_get_iap_icon_name_by_type(entry->network_type,
+                                                entry->service_type,
+                                                entry->service_id);
+}
+
+gchar *
+iap_settings_get_iap_icon_name_by_type(const gchar *network_type,
+                                       const gchar *service_type,
+                                       const gchar *service_id)
+{
+  gchar *icon_name = NULL;
+  GConfClient *gconf = gconf_client_get_default();
+
+  g_return_val_if_fail(gconf != NULL, NULL);
+
+  if (service_type && *service_type && service_id && *service_id)
+  {
+    gchar *path = iap_common_get_service_gconf_path(service_type, service_id);
+
+    if (gconf_client_dir_exists(gconf, path, NULL))
+    {
+      gchar *key = g_strdup_printf("%s/type_icon_name", path);
+
+      icon_name = gconf_client_get_string(gconf, key, NULL);
+      g_free(key);
+    }
+
+    g_free(path);
+  }
+
+  if (!icon_name && network_type)
+  {
+    gchar *key = g_strdup_printf("%s/%s/icon_name",
+                                 "/system/osso/connectivity/network_type",
+                                 network_type);
+
+    icon_name = gconf_client_get_string(gconf, key, NULL);
+    g_free(key);
+  }
+
+  g_object_unref(gconf);
+
+  return icon_name;
+}
+
+gchar *
+iap_settings_get_iap_icon_name_by_network_and_signal(network_entry *entry,
+                                                     int signal)
+{
+  GConfClient *gconf;
+  gchar *key;
+  gchar *icon_name;
+
+  g_return_val_if_fail(entry != NULL, NULL);
+
+  if (entry->service_type && *entry->service_type &&
+      entry->service_id && *entry->service_id)
+  {
+    return iap_settings_get_iap_icon_name_by_network(entry);
+  }
+
+  if (!entry->network_type || !*entry->network_type)
+    return iap_settings_get_iap_icon_name_by_network(entry);
+
+  gconf = gconf_client_get_default();
+  key = g_strdup_printf("%s/%s/icon_name_signal_%d",
+                        "/system/osso/connectivity/network_type",
+                        entry->network_type,
+                        iap_common_get_signal_by_nw_level(signal));
+
+  icon_name = gconf_client_get_string(gconf, key, NULL);
+  g_free(key);
+  g_object_unref(gconf);
+
+  if (!icon_name)
+    return iap_settings_get_iap_icon_name_by_network(entry);
+
+  return icon_name;
+}

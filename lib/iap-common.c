@@ -344,3 +344,19 @@ iap_common_get_service_properties(gchar *service_type, gchar *service_id,
   g_free(gconf_path);
   g_object_unref(gconf);
 }
+
+/* FIXME - use defines/enum */
+int
+iap_common_get_signal_by_nw_level(int nw_level)
+{
+  if (nw_level == 0)
+    return 0;
+  else if (nw_level == 1)
+    return 1;
+  else if (nw_level == 2)
+    return 2;
+  else if ( nw_level == 3 )
+    return  3;
+  else
+    return 4;
+}

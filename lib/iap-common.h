@@ -13,5 +13,6 @@ void iap_common_set_close_response(GtkWidget *widget, gint response_id);
 gboolean iap_common_get_preferred_service(gchar **preferred_type, gchar **preferred_id);
 GtkWidget *iap_common_make_connection_entry(const gchar *iap);
 void iap_common_get_service_properties(gchar *service_type, gchar *service_id, gchar *prop_name, ...);
+int iap_common_get_signal_by_nw_level(int nw_level);
 
 #endif // IAP_COMMON_H
