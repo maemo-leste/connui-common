@@ -29,5 +29,9 @@ gchar *iap_settings_get_name_by_network(network_entry *entry, const gchar *name1
 gchar *iap_settings_get_iap_icon_name_by_network(network_entry *entry);
 gchar *iap_settings_get_iap_icon_name_by_type(const gchar *network_type, const gchar *service_type, const gchar *service_id);
 gchar *iap_settings_get_iap_icon_name_by_network_and_signal(network_entry *entry, int signal);
+gchar *iap_settings_get_iap_type(const gchar *iap);
+gboolean iap_settings_is_iap_visible(const gchar *iap);
+gint iap_settings_get_search_interval();
+gint iap_settings_wlan_txpower_get();
 
 #endif // IAPSETTINGS_H

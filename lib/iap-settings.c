@@ -601,3 +601,103 @@ iap_settings_get_iap_icon_name_by_network_and_signal(network_entry *entry,
 
   return icon_name;
 }
+
+gchar *
+iap_settings_get_iap_type(const gchar *iap)
+{
+  GConfValue *val;
+  gchar *type;
+
+  val = iap_settings_get_gconf_value(iap, "type");
+
+  if (!val)
+    return NULL;
+
+  type = g_strdup(gconf_value_get_string(val));
+  gconf_value_free(val);
+
+  return type;
+}
+
+gboolean
+iap_settings_is_iap_visible(const gchar *iap)
+{
+  gboolean visible;
+  GConfValue *val;
+
+  if (!iap || !*iap)
+  {
+    CONNUI_ERR("IAP ID is NULL or empty");
+    return FALSE;
+  }
+
+  if (iap_settings_iap_is_easywlan(iap))
+    return FALSE;
+
+  val = iap_settings_get_gconf_value(iap, "temporary");
+
+  if (!val)
+  {
+    val = iap_settings_get_gconf_value(iap, "visible");
+
+    if (!val)
+      return TRUE;
+
+    visible = gconf_value_get_bool(val);
+  }
+  else
+    visible = !gconf_value_get_bool(val);
+
+  gconf_value_free(val);
+
+  return visible;
+}
+
+gint
+iap_settings_get_search_interval()
+{
+  GConfClient *gconf;
+  gint interval;
+  GError *error = NULL;
+
+  gconf = gconf_client_get_default();
+  interval =
+      gconf_client_get_int(gconf,
+                           "/system/osso/connectivity/IAP/search_interval",
+                           &error);
+  if (error)
+  {
+    CONNUI_ERR("could not read search_interval [%s]", error->message);
+    g_clear_error(&error);
+  }
+
+  g_object_unref(gconf);
+
+  return interval;
+}
+
+gint
+iap_settings_wlan_txpower_get()
+{
+  GConfClient *gconf;
+  gint wlan_tx_power;
+  GError *error = NULL;
+
+  gconf = gconf_client_get_default();
+  wlan_tx_power =
+      gconf_client_get_int(gconf,
+                           "/system/osso/connectivity/IAP/wlan_tx_power",
+                           &error);
+  if (error)
+  {
+    CONNUI_ERR("could not read txpower [%s]", error->message);
+    g_clear_error(&error);
+  }
+
+  if (wlan_tx_power != 4)
+    wlan_tx_power = 8;
+
+  g_object_unref(gconf);
+
+  return wlan_tx_power;
+}
