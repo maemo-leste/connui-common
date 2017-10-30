@@ -701,3 +701,44 @@ iap_settings_wlan_txpower_get()
 
   return wlan_tx_power;
 }
+
+gchar *
+iap_settings_get_iap_icon_name_by_id(const gchar *iap)
+{
+  gchar *icon_name;
+  GConfValue *val;
+  gchar *service_id = NULL;
+  gchar *service_type = NULL;
+  gchar *type;
+
+  if (!iap)
+    return NULL;
+
+  val = iap_settings_get_gconf_value(iap, "service_type");
+
+  if (val)
+  {
+    service_type = g_strdup(gconf_value_get_string(val));
+    gconf_value_free(val);
+
+    if (service_type && *service_type)
+    {
+      val = iap_settings_get_gconf_value(iap, "service_id");
+
+      if (val)
+      {
+        service_id = g_strdup(gconf_value_get_string(val));
+        gconf_value_free(val);
+      }
+    }
+  }
+
+  type = iap_settings_get_iap_type(iap);
+  icon_name = iap_settings_get_iap_icon_name_by_type(type, service_type,
+                                                     service_id);
+  g_free(type);
+  g_free(service_type);
+  g_free(service_id);
+
+  return icon_name;
+}
