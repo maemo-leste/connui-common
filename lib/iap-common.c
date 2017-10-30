@@ -286,8 +286,9 @@ iap_common_make_connection_entry(const gchar *iap)
 }
 
 void
-iap_common_get_service_properties(gchar *service_type, gchar *service_id,
-                                  gchar *prop_name, ...)
+iap_common_get_service_properties(const gchar *service_type,
+                                  const gchar *service_id,
+                                  const gchar *prop_name, ...)
 {
   GConfClient *gconf;
   gchar *gconf_path;
@@ -359,4 +360,129 @@ iap_common_get_signal_by_nw_level(int nw_level)
     return  3;
   else
     return 4;
+}
+
+GtkWidget *
+iap_common_make_connection_entry_for_network(network_entry *entry)
+{
+  return iap_common_make_connection(NULL, entry);
+}
+
+void
+iap_common_set_service_properties_for_iap(const gchar *iap, GObject *container)
+{
+  GConfValue *val;
+  gchar *service_text;
+  gchar *service_id = NULL;
+  gchar *service_type = NULL;
+
+  service_text = iap_settings_get_name(iap);
+  val = iap_settings_get_gconf_value(iap, "service_type");
+
+  if (val)
+  {
+    service_type = g_strdup(gconf_value_get_string(val));
+    gconf_value_free(val);
+
+    val = iap_settings_get_gconf_value(iap, "service_id");
+
+    if (val)
+    {
+      service_id = g_strdup(gconf_value_get_string(val));
+      gconf_value_free(val);
+    }
+  }
+
+  iap_common_set_service_properties(service_type, service_id, service_text,
+                                    container, NULL);
+  g_free(service_type);
+  g_free(service_id);
+}
+
+void
+iap_common_set_service_properties(const gchar *service_type,
+                                  const gchar *service_id,
+                                  const gchar *service_text,
+                                  GObject *container,
+                                  GObject *label)
+{
+  gchar *label_text = NULL;
+  gchar *icon_name = NULL;
+
+  if (!container && !label)
+    return;
+
+  if (!label)
+  {
+    GList *children;
+
+    if (!GTK_IS_CONTAINER(container))
+      return;
+
+    children = gtk_container_get_children(GTK_CONTAINER(container));
+
+    if (!children || g_list_length(children) <= 1)
+    {
+      g_list_free(children);
+      return;
+    }
+
+    container = G_OBJECT(children->data);
+    label = G_OBJECT(children->next->data);
+    g_list_free(children);
+  }
+
+  if (service_type && *service_type && service_id && *service_id)
+  {
+    gchar *format = NULL;
+
+    iap_common_get_service_properties(service_type, service_id,
+                                      "icon_name", &icon_name,
+                                      "markup", &format,
+                                      NULL);
+    if (format)
+      label_text = g_strdup_printf(format, service_text);
+    else
+      label_text = g_strdup(service_text);
+
+    g_free(format);
+  }
+  else
+    label_text = NULL;
+
+  if (!icon_name)
+    g_object_set(container, "pixbuf", NULL, NULL);
+
+  g_object_set(container, "icon-name", icon_name, NULL);
+  g_free(icon_name);
+
+  if (label_text)
+  {
+    if (GTK_IS_LABEL(label))
+    {
+      g_object_set(label, "label", label_text, NULL);
+      g_object_set(label, "use-markup", TRUE, NULL);
+    }
+    else
+      g_object_set(label, "markup", label_text, NULL);
+
+    g_free(label_text);
+    return;
+  }
+  else if (GTK_IS_LABEL(label))
+  {
+    g_object_set(label, "label", service_text, NULL);
+    g_object_set(label, "use-markup", FALSE, NULL);
+  }
+  else
+    g_object_set(label, "text", service_text, NULL);
+}
+
+void
+iap_common_set_service_properties_for_network(network_entry *entry,
+                                              GObject *container)
+{
+  iap_common_set_service_properties(
+        entry->service_type, entry->service_id,
+        iap_settings_get_name_by_network(entry, NULL, NULL), container, NULL);
 }

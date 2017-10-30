@@ -1,5 +1,9 @@
 #include <gtk/gtk.h>
 
+#include <string.h>
+
+#include "iap-common.h"
+
 #include "connui-cell-renderer-operator.h"
 
 enum
@@ -30,7 +34,8 @@ G_DEFINE_TYPE(ConnuiCellRendererOperator, connui_cell_renderer_operator, GTK_TYP
 
 GtkCellRenderer *connui_cell_renderer_operator_new()
 {
-  return GTK_CELL_RENDERER(g_object_new(CONNUI_TYPE_CELL_RENDERER_OPERATOR,0));
+  return
+      GTK_CELL_RENDERER(g_object_new(CONNUI_TYPE_CELL_RENDERER_OPERATOR, NULL));
 }
 
 static void connui_cell_renderer_operator_get_size(GtkCellRenderer *cell, GtkWidget *widget, GdkRectangle *cell_area, gint *x_offset, gint *y_offset, gint *width, gint *height)
@@ -102,15 +107,75 @@ static void connui_cell_renderer_operator_render(GtkCellRenderer *cell, GdkDrawa
   rendererclass->render(cell, window, widget, final_background_area, final_cell_area, final_expose_area, flags);
 }
 
-static int set_service_properties(ConnuiCellRendererOperator *self)
+static void
+set_service_properties(ConnuiCellRendererOperator *self)
 {
-  //todo
-  return 0;
+  iap_common_set_service_properties(self->service_type, self->service_id,
+                                    self->service_text, G_OBJECT(self->pixbuf),
+                                    G_OBJECT(&self->parent));
 }
 
-static void set_service_type_and_id(ConnuiCellRendererOperator *self, const gchar *service_type, const gchar *service_id)
+static void
+set_service_type_and_id(ConnuiCellRendererOperator *self,
+                        const gchar *service_type,
+                        const gchar *service_id)
 {
-  //todo
+  if (!service_type && self->service_type)
+  {
+    g_free(self->service_type);
+    self->service_type = NULL;
+  }
+
+  if (!service_id && self->service_id)
+  {
+    g_free(self->service_id);
+    self->service_id = NULL;
+  }
+
+  if (!service_type && !service_id)
+  {
+    g_object_set(G_OBJECT(&self->parent), "pixbuf", NULL, NULL);
+    return;
+  }
+
+  if (!self->service_type || strcmp(self->service_type, service_type) ||
+      !self->service_id || strcmp(self->service_id, service_id))
+  {
+    if (strcmp(self->service_type, service_type))
+    {
+      g_free(self->service_type);
+      self->service_type = g_strdup(service_type);
+    }
+
+    if (strcmp(self->service_id, service_id))
+    {
+      g_free(self->service_id);
+      self->service_id = g_strdup(service_id);
+    }
+
+    /* WTF is going on here ?!? */
+    if (self->service_type)
+    {
+      if (!self->service_id)
+        return;
+
+      if (*self->service_type)
+      {
+        if (*self->service_id)
+          set_service_properties(self);
+        return;
+      }
+
+      if (*self->service_id)
+        return;
+    }
+    else if (self->service_id)
+    {
+      return;
+    }
+
+    set_service_properties(self);
+  }
 }
 
 static void
