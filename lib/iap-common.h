@@ -18,5 +18,7 @@ GtkWidget *iap_common_make_connection_entry_for_network(network_entry *entry);
 void iap_common_set_service_properties_for_iap(const gchar *iap, GObject *container);
 void iap_common_set_service_properties(const gchar *service_type, const gchar *service_id, const gchar *service_text, GObject *container, GObject *label);
 void iap_common_set_service_properties_for_network(network_entry *entry, GObject *container);
+GtkWidget *iap_common_make_connection_entry_with_type_for_network(network_entry *entry, GtkWidget **image, GtkWidget **connection);
+GtkWidget *iap_common_make_connection_entry_with_type(const gchar *iap, GtkWidget **image, GtkWidget **connection);
 
 #endif // IAP_COMMON_H

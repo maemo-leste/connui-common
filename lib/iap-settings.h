@@ -27,6 +27,7 @@ gchar *iap_settings_get_name(const gchar *iap);
 gchar *iap_settings_get_wlan_ssid(const gchar *iap);
 gchar *iap_settings_get_name_by_network(network_entry *entry, const gchar *name1, const gchar *name2);
 gchar *iap_settings_get_iap_icon_name_by_network(network_entry *entry);
+gchar *iap_settings_get_iap_icon_name_by_id(const gchar *iap);
 gchar *iap_settings_get_iap_icon_name_by_type(const gchar *network_type, const gchar *service_type, const gchar *service_id);
 gchar *iap_settings_get_iap_icon_name_by_network_and_signal(network_entry *entry, int signal);
 gchar *iap_settings_get_iap_type(const gchar *iap);

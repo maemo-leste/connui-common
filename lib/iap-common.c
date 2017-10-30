@@ -8,6 +8,8 @@
 
 #include "connui-dbus.h"
 #include "connui-log.h"
+#include "connui-pixbuf-cache.h"
+
 #include "iap-settings.h"
 
 GtkWidget *
@@ -485,4 +487,67 @@ iap_common_set_service_properties_for_network(network_entry *entry,
   iap_common_set_service_properties(
         entry->service_type, entry->service_id,
         iap_settings_get_name_by_network(entry, NULL, NULL), container, NULL);
+}
+
+static GtkWidget *
+_iap_common_make_connection_entry(const gchar *iap, network_entry *entry,
+                                  GtkWidget **image, GtkWidget **connection)
+{
+  GtkWidget *icon = NULL;
+  GtkWidget *conn;
+  GtkWidget *hbox;
+  gchar *icon_name = NULL;
+
+  hbox = gtk_hbox_new(0, 8);
+
+  if (iap)
+    icon_name = iap_settings_get_iap_icon_name_by_id(iap);
+  else if (entry)
+    icon_name = iap_settings_get_iap_icon_name_by_network(entry);
+
+  if (icon_name)
+  {
+    gint size = hildon_get_icon_pixel_size(
+          gtk_icon_size_from_name("hildon-small"));
+    GdkPixbuf *pixbuf = connui_pixbuf_load(icon_name, size);
+
+    g_free(icon_name);
+
+    if (pixbuf)
+    {
+      icon = gtk_image_new_from_pixbuf(pixbuf);
+      connui_pixbuf_unref(pixbuf);
+    }
+  }
+
+  if (!icon)
+    icon = gtk_image_new();
+
+  gtk_box_pack_start(GTK_BOX(hbox), icon, 0, 0, 0);
+
+  if (image)
+    *image = icon;
+
+  conn = iap_common_make_connection(iap, entry);
+  gtk_box_pack_start(GTK_BOX(hbox), conn, 1, 1, 0);
+
+  if (connection)
+    *connection = conn;
+
+  return hbox;
+}
+
+GtkWidget *
+iap_common_make_connection_entry_with_type_for_network(network_entry *entry,
+                                                       GtkWidget **image,
+                                                       GtkWidget **connection)
+{
+  return _iap_common_make_connection_entry(NULL, entry, image, connection);
+}
+
+GtkWidget *
+iap_common_make_connection_entry_with_type(const gchar *iap, GtkWidget **image,
+                                           GtkWidget **connection)
+{
+  return _iap_common_make_connection_entry(iap, NULL, image, connection);
 }
