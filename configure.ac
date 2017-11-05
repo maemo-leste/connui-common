@@ -34,6 +34,7 @@ PKG_CHECK_MODULES(CONNUI,
 			gtk+-2.0 dnl
 			dbus-glib-1 dnl
 			hildon-1 dnl
+			icd2 dnl
 			gconf-2.0])
 
 AC_SUBST(CONNUI_LIBS)

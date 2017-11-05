@@ -236,3 +236,40 @@ iap_network_entry_is_saved(network_entry *entry)
 
   return FALSE;
 }
+
+int
+iap_network_entry_compare(network_entry *network1, network_entry *network2)
+{
+  g_return_val_if_fail(network1 != NULL && network2 != NULL, 0);
+
+  return iap_network_entry_service_compare(network1, network2) ||
+      iap_network_entry_network_compare(network1, network2);
+}
+
+int
+iap_network_entry_network_compare(network_entry *network1,
+                                  network_entry *network2)
+{
+  int rv;
+  unsigned int capabilities1;
+  unsigned int capabilities2;
+
+  if ((rv = g_strcmp0(network1->network_type, network2->network_type)))
+    return rv;
+
+  if ((rv = g_strcmp0(network1->network_id, network2->network_id)))
+    return rv;
+
+  capabilities1 = network2->network_attributes & ICD_NW_ATTR_LOCALMASK;
+  capabilities2 = network1->network_attributes & ICD_NW_ATTR_LOCALMASK;
+
+  if (capabilities1 | capabilities2)
+  {
+    if (capabilities2 <= capabilities1)
+      rv = capabilities2 < capabilities1;
+    else
+      rv = -1;
+  }
+
+  return rv;
+}

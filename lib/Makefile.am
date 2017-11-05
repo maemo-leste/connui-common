@@ -6,6 +6,7 @@ libconnui_la_LDFLAGS = -avoid-version -Wl,--no-undefined
 libconnui_la_LIBADD = $(CONNUI_LIBS) -losso
 
 libconnui_la_SOURCES =	\
+			iap-scan.c \
 			connui-display.c \
 			connui-pixbuf-anim.c \
 			connui-dbus.c \
