@@ -1,4 +1,5 @@
 #include <gconf/gconf-client.h>
+#include <icd/network_api_defines.h>
 
 #include <string.h>
 
