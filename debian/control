@@ -1,0 +1,12 @@
+Source: connui-common
+Section: x11
+Priority: optional
+Maintainer: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Build-Depends: debhelper (>= 5), cdbs, libtool, pkg-config, libglib2.0-dev, libgconf2-dev, libdbus-1-dev, mce-dev
+Standards-Version: 3.8.0
+
+Package: libconnui
+Architecture: any
+Depends: ${shlibs:Depends}
+Description: Common connectivity UI library
+ This package provides a common connectivity UI library.

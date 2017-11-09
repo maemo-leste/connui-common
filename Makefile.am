@@ -1,4 +1,4 @@
-SUBDIRS = lib
+SUBDIRS = connui
 
 pkginclude_HEADERS = 
 

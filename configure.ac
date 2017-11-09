@@ -49,7 +49,7 @@ AC_SUBST(hildondesktoplibdir)
 
 AC_OUTPUT([
 Makefile
-lib/Makefile
+connui/Makefile
 connui.pc
 ])
 

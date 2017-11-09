@@ -89,8 +89,9 @@ connui_scan_box_view_update_child(ConnuiBoxView *view, GtkWidget *hbutton,
   if (can_disconnect)
   {
     gchar* tmp = title;
-    title = g_strdup_printf(
-          dgettext("osso-connectivity-ui", "conn_fi_disconnect_iap"), tmp);
+    const gchar *s = dgettext("osso-connectivity-ui", "conn_fi_disconnect_iap");
+
+    title = g_strdup_printf(s, tmp);
     g_free(tmp);
   }
 
