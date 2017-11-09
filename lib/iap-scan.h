@@ -14,4 +14,11 @@ GtkWidget *iap_scan_tree_create(GtkTreeIterCompareFunc sort_func, gpointer*user_
 GtkWidget *iap_scan_view_create(GtkWidget *scan_tree_view);
 void iap_scan_free_scan_entry(connui_scan_entry *entry);
 
+gboolean iap_scan_icd_scan_start(connui_wlan_info **info, gchar **network_types);
+
+void iap_scan_close();
+void iap_scan_stop();
+
+gboolean iap_scan_add_scan_entry(connui_scan_entry *scan_entry, gboolean unk);
+
 #endif // IAPSCAN_H

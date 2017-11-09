@@ -37,17 +37,17 @@ enum
 struct _connui_wlan_info
 {
   int flags;
-  void (*complete_cb)(gpointer);
-  iap_scan_cancel_fn cancel_cb;
-  int callback;
+  void (*scan_started_cb)(gpointer);
+  iap_scan_cancel_fn scan_stopped_cb;
+  gboolean (*scan_network_added_cb)(connui_scan_entry *, gpointer);
   gpointer user_data;
-  int field_14;
+  gboolean scan_in_progress;
   GtkTreeView *tree_view;
   GtkListStore *model;
   GtkBox *box;
-  int field_24;
-  int selected;
-  int field_2C;
+  void *unk1;
+  gboolean selected;
+  gboolean scrolled;
   int active_scan_count;
   void (*selection_changed_cb)(GtkTreeSelection *, gpointer);
   int field_38;
@@ -73,6 +73,8 @@ struct _connui_scan_entry
   GtkTreeIter iterator;
   GSList *list;
 };
+
+static connui_wlan_info *wlan_info = NULL;
 
 static void
 iap_scan_list_store_set_valist(connui_wlan_info **info,
@@ -159,8 +161,8 @@ iap_scan_icd_scan_stop(connui_wlan_info **info)
 
   (*info)->active_scan_count--;
 
-  if ((*info)->cancel_cb)
-    (*info)->cancel_cb((*info)->user_data);
+  if ((*info)->scan_stopped_cb)
+    (*info)->scan_stopped_cb((*info)->user_data);
 
   if (mcall)
     dbus_message_unref(mcall);
@@ -352,8 +354,7 @@ iap_scan_entry_compare(connui_scan_entry *entry1, connui_scan_entry *entry2)
 static GSList *
 iap_scan_add_related_result(connui_wlan_info **info,
                             connui_scan_entry *new_scan_entry,
-                            gint (*compare_func)(gconstpointer a,
-                                                 gconstpointer b))
+                            GCompareFunc compare_func)
 {
   GSList *scan_list;
   GSList *rv = NULL;
@@ -397,8 +398,7 @@ iap_scan_selection_changed(connui_wlan_info **info)
   if ((*info)->tree_view && (*info)->selection_changed_cb)
   {
     (*info)->selection_changed_cb(
-          gtk_tree_view_get_selection((*info)->tree_view),
-          (*info)->user_data);
+          gtk_tree_view_get_selection((*info)->tree_view), (*info)->user_data);
   }
 }
 
@@ -439,13 +439,10 @@ iap_scan_select_first_item(connui_wlan_info **info)
       }
     }
 
-    (*info)->field_14 = FALSE;
+    (*info)->scan_in_progress = FALSE;
 
-    if ((*info)->cancel_cb)
-    {
-      (*info)->cancel_cb((*info)->user_data);
-      (*info) = *info;
-    }
+    if ((*info)->scan_stopped_cb)
+      (*info)->scan_stopped_cb((*info)->user_data);
 
     g_slist_foreach((*info)->network_types, (GFunc)&g_free, 0);
     g_slist_free((*info)->network_types);
@@ -532,15 +529,15 @@ iap_scan_icd_signal(DBusConnection *connection, DBusMessage *message,
     else
       scan_entry = NULL;
 
-    if (!(*info)->field_14)
+    if (!(*info)->scan_in_progress)
     {
       if (status == ICD_SCAN_COMPLETE)
         goto finish;
 
-      if ((*info)->complete_cb)
-        (*info)->complete_cb((*info)->user_data);
+      if ((*info)->scan_started_cb)
+        (*info)->scan_started_cb((*info)->user_data);
 
-      (*info)->field_14 = TRUE;
+      (*info)->scan_in_progress = TRUE;
     }
 
     if ((status == ICD_SCAN_NEW || status == ICD_SCAN_UPDATE) && !scan_entry)
@@ -656,15 +653,15 @@ finish:
       }
     }
 
-    /* FIXME field_2C */
-    if (!(*info)->field_2C && (*info)->tree_view && (*info)->scan_list &&
+    /* FIXME scrolled */
+    if (!(*info)->scrolled && (*info)->tree_view && (*info)->scan_list &&
         GTK_WIDGET_REALIZED((*info)->tree_view))
     {
       GtkTreePath *path = gtk_tree_path_new_from_string("0");
 
       gtk_tree_view_scroll_to_cell((*info)->tree_view, path, 0, 1, 0.0, 0.0);
       gtk_tree_path_free(path);
-      (*info)->field_2C = FALSE;
+      (*info)->scrolled = FALSE;
       return DBUS_HANDLER_RESULT_HANDLED;
     }
   }
@@ -681,4 +678,627 @@ iap_scan_free_scan_entry(connui_scan_entry *entry)
   g_free(entry->station_id);
   g_slist_free(entry->list);
   g_free(entry);
+}
+
+static connui_wlan_info **
+get_wlan_info()
+{
+  return &wlan_info;
+}
+
+void
+iap_scan_stop()
+{
+  connui_wlan_info **info = get_wlan_info();
+
+  if (*info)
+  {
+    if ((*info)->pending)
+    {
+      dbus_pending_call_cancel((*info)->pending);
+      dbus_pending_call_unref((*info)->pending);
+      (*info)->pending = NULL;
+    }
+
+    iap_scan_icd_scan_stop(info);
+  }
+  else
+    CONNUI_ERR("wlan info not initialized");
+}
+
+static void
+iap_scan_remove_network_from_list(connui_wlan_info **info,
+                                  connui_scan_entry *scan_entry)
+{
+  connui_scan_entry *entry;
+
+  g_return_if_fail(*info != NULL && scan_entry != NULL);
+
+
+  if (scan_entry->list)
+  {
+    GSList *l = g_slist_remove(scan_entry->list, scan_entry);
+
+    scan_entry->list = l;
+
+    if (l)
+    {
+      do
+      {
+        entry = (connui_scan_entry *)l->data;
+        entry->list = g_slist_remove(entry->list, scan_entry);
+        l = l->next;
+      }
+      while (l);
+
+      if ((*info)->model)
+      {
+        gtk_list_store_set(GTK_LIST_STORE((*info)->model), &entry->iterator,
+                           IAP_SCAN_LIST_SCAN_ENTRY, entry, -1);
+      }
+    }
+  }
+
+  if (!scan_entry->list)
+  {
+    if ((*info)->model && scan_entry->iterator.stamp)
+    {
+      gtk_list_store_remove(GTK_LIST_STORE((*info)->model),
+                            &scan_entry->iterator);
+    }
+  }
+}
+
+void
+iap_scan_close()
+{
+  connui_wlan_info **info;
+  GSList *scan_list;
+
+  info = get_wlan_info();
+
+  if (!*info)
+  {
+    CONNUI_ERR("wlan info not initialized");
+    return;
+  }
+
+  iap_scan_icd_scan_stop(info);
+
+  if ((*info)->field_38)
+  {
+    g_source_remove((*info)->field_38);
+    (*info)->field_38 = 0;
+  }
+
+  connui_dbus_disconnect_system_path("/com/nokia/icd2");
+  connui_pixbuf_cache_destroy((*info)->pixbuf_cache);
+
+  if ( (*info)->network_types )
+  {
+    g_slist_foreach((*info)->network_types, (GFunc)g_free, NULL);
+    g_slist_free((*info)->network_types);
+    (*info)->network_types = NULL;
+  }
+
+  scan_list = (*info)->scan_list;
+
+  if (scan_list)
+  {
+    do
+    {
+      connui_scan_entry *entry = (connui_scan_entry *)scan_list->data;
+
+      if (entry)
+      {
+        iap_scan_remove_network_from_list(info, entry);
+        iap_scan_free_scan_entry(entry);
+      }
+
+      scan_list = scan_list->next;
+    }
+    while (scan_list);
+  }
+
+  g_slist_free((*info)->scan_list);
+  g_free(*info);
+
+  *info = NULL;
+}
+
+static gboolean
+iap_common_user_moved_cb(connui_wlan_info **info)
+{
+  GtkTreeSelection *selection;
+
+  g_return_val_if_fail(info != NULL && *info != NULL, FALSE);
+
+  selection = gtk_tree_view_get_selection((*info)->tree_view);
+
+  if (selection)
+  {
+    (*info)->selected = gtk_tree_selection_get_selected(selection, 0, 0);
+    iap_scan_selection_changed(info);
+  }
+
+  return FALSE;
+}
+
+static void
+iap_scan_scroll_value_changed_cb(GtkAdjustment *adjustment,
+                                 connui_wlan_info **info)
+{
+  g_return_if_fail(info != NULL && *info != NULL);
+
+  if ( adjustment )
+  {
+    if (gtk_adjustment_get_value(adjustment) >= 1.0)
+      (*info)->scrolled = TRUE;
+  }
+}
+
+void
+iap_scan_start_for_network_types(gchar **network_types, int flags,
+                                 void (*scan_started_cb)(gpointer),
+                                 iap_scan_cancel_fn scan_stopped_cb,
+                                 gboolean (*scan_network_added_cb)(connui_scan_entry *, gpointer),
+                                 GtkWidget *widget,
+                                 void *unk,
+                                 void (*selection_changed_cb)(GtkTreeSelection *, gpointer),
+                                 gpointer user_data)
+{
+  connui_wlan_info **info = get_wlan_info();
+
+  if (*info)
+  {
+    (*info)->flags = flags;
+    (*info)->scan_started_cb = scan_started_cb;
+    (*info)->scan_stopped_cb = scan_stopped_cb;
+    (*info)->scan_network_added_cb = scan_network_added_cb;
+
+    if (GTK_IS_TREE_VIEW(widget))
+    {
+      (*info)->tree_view = GTK_TREE_VIEW(widget);
+      (*info)->model =
+          GTK_LIST_STORE(gtk_tree_view_get_model((*info)->tree_view));
+    }
+    else if (GTK_IS_BOX(widget))
+    {
+      (*info)->box = GTK_BOX(widget);
+      g_object_get(G_OBJECT((*info)->box), "model", &(*info)->model, NULL);
+    }
+    else
+      CONNUI_ERR("Unable to use scan view widget %p", widget);
+
+    (*info)->user_data = user_data;
+    (*info)->scan_in_progress = FALSE;
+
+    if ((*info)->active_scan_count > 0)
+      return;
+  }
+  else
+  {
+    (*info) = g_new0(connui_wlan_info, 1);
+    (*info)->unk1 = unk;
+    (*info)->flags = flags;
+    (*info)->scan_started_cb = scan_started_cb;
+    (*info)->scan_stopped_cb = scan_stopped_cb;
+    (*info)->scan_network_added_cb = scan_network_added_cb;
+    (*info)->selection_changed_cb = selection_changed_cb;
+    (*info)->user_data = user_data;
+
+    if (GTK_IS_TREE_VIEW(widget))
+    {
+      (*info)->tree_view = GTK_TREE_VIEW(widget);
+      (*info)->model =
+          GTK_LIST_STORE(gtk_tree_view_get_model((*info)->tree_view));
+    }
+    else if (GTK_IS_BOX(widget))
+    {
+      (*info)->box = GTK_BOX(widget);
+      g_object_get(G_OBJECT((*info)->box), "model", &(*info)->model, NULL);
+    }
+    else
+      CONNUI_ERR("Unable to use scan view widget %p", widget);
+
+    (*info)->scan_in_progress = FALSE;
+    (*info)->selected = FALSE;
+    (*info)->scrolled = FALSE;
+    (*info)->pixbuf_cache = connui_pixbuf_cache_new();
+
+    iap_common_get_preferred_service(&(*info)->preffered_type,
+                                     &(*info)->preffered_id);
+
+    if ((*info)->tree_view)
+    {
+      g_signal_connect_swapped(
+            G_OBJECT((*info)->tree_view), "button-press-event",
+            (GCallback)iap_common_user_moved_cb, info);
+      g_signal_connect_swapped(G_OBJECT((*info)->tree_view), "move-cursor",
+                               (GCallback)iap_common_user_moved_cb, info);
+      g_signal_connect_swapped(
+            G_OBJECT(gtk_tree_view_get_selection((*info)->tree_view)),
+            "changed", (GCallback)iap_common_user_moved_cb, info);
+      g_signal_connect(
+            G_OBJECT(gtk_tree_view_get_vadjustment((*info)->tree_view)),
+            "value-changed", (GCallback)iap_scan_scroll_value_changed_cb, info);
+    }
+
+    if (!connui_dbus_connect_system_path(
+          "/com/nokia/icd2", (DBusObjectPathMessageFunction)iap_scan_icd_signal,
+          info))
+    {
+      return;
+    }
+  }
+
+  iap_scan_icd_scan_start(info, (gchar **)network_types);
+}
+
+static void
+iap_scan_icd_reply(DBusPendingCall *pending, connui_wlan_info **info)
+{
+  DBusMessage *reply;
+
+  if (!info)
+  {
+    CONNUI_ERR("no info struct for reply");
+    return;
+  }
+
+  if ((*info)->pending)
+  {
+    dbus_pending_call_unref((*info)->pending);
+    (*info)->pending = NULL;
+  }
+
+  reply = dbus_pending_call_steal_reply(pending);
+
+  if (reply)
+  {
+    if (dbus_message_get_type(reply) == DBUS_MESSAGE_TYPE_ERROR)
+    {
+      CONNUI_ERR("icd pending call returned error '%s'",
+                 dbus_message_get_error_name(reply));
+    }
+    else
+    {
+      gchar **str_array = NULL;
+
+      if (dbus_message_get_args(reply, NULL, DBUS_TYPE_ARRAY, DBUS_TYPE_STRING,
+                                &str_array, &(*info)->network_types_len,
+                                DBUS_TYPE_INVALID))
+      {
+        dbus_free_string_array(str_array);
+      }
+      else
+        CONNUI_ERR("icd pending call returned wrong parameters");
+    }
+
+    dbus_message_unref(reply);
+  }
+  else
+    CONNUI_ERR("no message in icd pending call");
+
+  if ((*info)->scan_stopped_cb)
+    (*info)->scan_stopped_cb((*info)->user_data);
+
+  iap_scan_select_first_item(info);
+}
+
+gboolean
+iap_scan_icd_scan_start(connui_wlan_info **info, gchar **network_types)
+{
+  DBusMessage *mcall;
+  dbus_uint32_t request_flags = ICD_SCAN_REQUEST_ACTIVE;
+
+  if (network_types)
+  {
+    mcall = connui_dbus_create_method_call(ICD_DBUS_API_INTERFACE,
+                                           ICD_DBUS_API_PATH,
+                                           ICD_DBUS_API_INTERFACE,
+                                           ICD_DBUS_API_SCAN_REQ,
+                                           DBUS_TYPE_UINT32,
+                                           &request_flags,
+                                           DBUS_TYPE_ARRAY,
+                                           DBUS_TYPE_STRING,
+                                           &network_types,
+                                           g_strv_length(network_types),
+                                           DBUS_TYPE_INVALID);
+    if (!mcall)
+      return FALSE;
+  }
+  else
+  {
+    mcall = connui_dbus_create_method_call(ICD_DBUS_API_INTERFACE,
+                                           ICD_DBUS_API_PATH,
+                                           ICD_DBUS_API_INTERFACE,
+                                           ICD_DBUS_API_SCAN_REQ,
+                                           DBUS_TYPE_UINT32,
+                                           &request_flags,
+                                           DBUS_TYPE_INVALID);
+    if (!mcall)
+      return FALSE;
+  }
+
+  if (!connui_dbus_send_system_mcall(
+        mcall,-1, (DBusPendingCallNotifyFunction)iap_scan_icd_reply, info,
+        &(*info)->pending))
+  {
+    CONNUI_ERR("could not send message");
+    dbus_message_unref(mcall);
+    return FALSE;
+  }
+
+  if (!(*info)->active_scan_count)
+  {
+    GSList *scan_list = (*info)->scan_list;
+
+    if (scan_list)
+    {
+      do
+      {
+        connui_scan_entry *scan_entry = scan_list->data;
+
+        if (scan_entry)
+        {
+          scan_list->data = NULL;
+          iap_scan_remove_network_from_list(info, scan_entry);
+          iap_scan_free_scan_entry(scan_entry);
+        }
+
+        scan_list = scan_list->next;
+      }
+      while (scan_list);
+
+      g_slist_free((*info)->scan_list);
+
+      (*info)->scan_list = NULL;
+      (*info)->selected = FALSE;
+      (*info)->scrolled = FALSE;
+
+      if ((*info)->network_types)
+      {
+        g_slist_foreach((*info)->network_types, (GFunc)g_free, NULL);
+        g_slist_free((*info)->network_types);
+        (*info)->network_types = NULL;
+      }
+    }
+  }
+
+  (*info)->active_scan_count++;
+
+  if (!(*info)->scan_in_progress)
+  {
+    if ((*info)->scan_started_cb)
+    {
+      (*info)->scan_started_cb((*info)->user_data);
+      (*info) = *info;
+    }
+    (*info)->scan_in_progress = TRUE;
+  }
+
+  dbus_message_unref(mcall);
+
+  return TRUE;
+}
+
+static void
+iap_scan_add_network_to_list(connui_wlan_info **info,
+                             connui_scan_entry *scan_entry)
+{
+  network_entry *network;
+
+  g_return_if_fail(*info != NULL && scan_entry != NULL);
+
+  network = &scan_entry->network;
+
+  g_return_if_fail(network->network_type != NULL);
+
+  if (scan_entry->list)
+  {
+    GtkTreeIter *iter = &scan_entry->iterator;
+    connui_scan_entry *entry = (connui_scan_entry *)scan_entry->list->data;
+
+    iter->stamp = entry->iterator.stamp;
+    iter->user_data = entry->iterator.user_data;
+    iter->user_data2 = entry->iterator.user_data2;
+    iter->user_data3 = entry->iterator.user_data3;
+    scan_entry->list = g_slist_insert_sorted(
+          scan_entry->list, scan_entry, (GCompareFunc)iap_scan_entry_compare);
+
+    if (iap_network_entry_is_saved(&scan_entry->network))
+    {
+      iap_scan_list_store_set_valist(
+            info, scan_entry,
+            IAP_SCAN_LIST_IS_SAVED, iap_network_entry_is_saved(network),
+            IAP_SCAN_LIST_SAVED_ICON,
+            wlan_common_get_saved_icon_name_by_network(network),
+            -1);
+    }
+  }
+  else
+  {
+    gchar *ssid = NULL;
+
+    if (iap_network_entry_is_saved(network) && network->network_type &&
+        !strncmp(network->network_type, "WLAN_", 5))
+    {
+      ssid = iap_settings_get_wlan_ssid(network->network_id);
+    }
+
+    if ((*info)->model)
+    {
+      gtk_list_store_append(GTK_LIST_STORE((*info)->model),
+                            &scan_entry->iterator);
+    }
+
+    if (!ssid)
+      ssid = g_strdup(network->network_id);
+
+    iap_scan_list_store_set_valist(
+          info, scan_entry,
+          IAP_SCAN_LIST_SSID, ssid,
+          IAP_SCAN_LIST_SERVICE_TYPE, network->service_type,
+          IAP_SCAN_LIST_SERVICE_ID, network->service_id,
+          IAP_SCAN_LIST_NETWORK_TYPE, network->network_type,
+          IAP_SCAN_LIST_IS_SAVED, iap_network_entry_is_saved(network),
+          IAP_SCAN_LIST_SAVED_ICON,
+          wlan_common_get_saved_icon_name_by_network(network),
+          IAP_SCAN_LIST_SCAN_ENTRY, scan_entry,
+          -1);
+
+    scan_entry->list = g_slist_append(scan_entry->list, scan_entry);
+    g_free(ssid);
+  }
+}
+
+gboolean
+iap_scan_add_scan_entry(connui_scan_entry *scan_entry, gboolean unk)
+{
+  GSList *found;
+  connui_wlan_info **info;
+  GConfValue *val;
+  GSList *related; // r0
+  gpointer scan_results; // [sp+44h] [bp-28h] MAPDST
+
+  info = get_wlan_info();
+
+  if (!info || !*info)
+  {
+    CONNUI_ERR("No scan ongoing, unable to add result");
+    return FALSE;
+  }
+
+  found = g_slist_find_custom((*info)->scan_list, scan_entry,
+                              (GCompareFunc)iap_network_entry_compare);
+  if (!found)
+  {
+    if ((*info)->scan_network_added_cb)
+    {
+      if (!(*info)->scan_network_added_cb(scan_entry, (*info)->user_data))
+        return FALSE;
+    }
+
+    (*info)->scan_list = g_slist_prepend((*info)->scan_list, scan_entry);
+
+    scan_results = 0;
+
+    if (iap_network_entry_is_saved(&scan_entry->network))
+    {
+      if (scan_entry->network.service_type && *scan_entry->network.service_type)
+      {
+LABEL_32:
+        if (scan_entry->network.service_id && *scan_entry->network.service_id)
+        {
+          iap_common_get_service_properties(scan_entry->network.service_type,
+                                            scan_entry->network.service_id,
+                                            "scan_results", &scan_results,
+                                            NULL);
+
+          if (scan_results)
+          {
+            related = iap_scan_add_related_result(
+                  info, scan_entry,
+                  (GCompareFunc)iap_network_entry_service_compare);
+
+            goto LABEL_29;
+          }
+        }
+        else
+        {
+LABEL_25:
+          if (iap_scan_is_hidden_wlan(&scan_entry->network))
+          {
+            related = iap_scan_add_related_result(
+                  info, scan_entry,
+                  (GCompareFunc)iap_scan_entry_network_compare);
+LABEL_29:
+            scan_entry->list = related;
+            g_free(scan_results);
+            iap_scan_add_network_to_list(info, scan_entry);
+
+            goto LABEL_5;
+          }
+        }
+
+        related = NULL;
+        goto LABEL_29;
+      }
+
+      if (!scan_entry->network.network_id || !*scan_entry->network.network_id)
+      {
+LABEL_23:
+        if (!scan_entry->network.service_type ||
+            !*scan_entry->network.service_type)
+        {
+          goto LABEL_25;
+        }
+
+        goto LABEL_32;
+      }
+
+      val = iap_settings_get_gconf_value(scan_entry->network.network_id,
+                                         "service_type");
+
+      if (val)
+      {
+        g_free(scan_entry->network.service_type);
+
+        scan_entry->network.service_type =
+            g_strdup(gconf_value_get_string(val));
+        gconf_value_free(val);
+
+        if (!scan_entry->network.service_id || !*scan_entry->network.service_id)
+        {
+          val = iap_settings_get_gconf_value(scan_entry->network.network_id,
+                                             "service_id");
+          if (val)
+          {
+            g_free(scan_entry->network.service_id);
+            scan_entry->network.service_id =
+                g_strdup(gconf_value_get_string(val));
+            gconf_value_free(val);
+          }
+        }
+      }
+    }
+
+    goto LABEL_23;
+  }
+
+  iap_scan_update_network_in_list(info, found->data);
+  iap_scan_free_scan_entry(scan_entry);
+  scan_entry = found->data;
+
+LABEL_5:
+
+  if (unk)
+  {
+    iap_scan_list_store_set_valist(info, scan_entry,
+                                   IAP_SCAN_LIST_UNKNOWN_BOOL, 1, -1);
+  }
+
+  return TRUE;
+}
+
+void
+iap_scan_start(int flags,
+               void (*scan_started_cb)(gpointer),
+               iap_scan_cancel_fn scan_stopped_cb,
+               gboolean (*scan_network_added_cb)(connui_scan_entry *, gpointer),
+               GtkWidget *widget, void *unk,
+               void (*selection_changed_cb)(GtkTreeSelection *, gpointer),
+               gpointer user_data)
+{
+  iap_scan_start_for_network_types(
+        NULL,
+        flags,
+        scan_started_cb,
+        scan_stopped_cb,
+        scan_network_added_cb,
+        widget,
+        unk,
+        selection_changed_cb,
+        user_data);
 }
