@@ -64,15 +64,14 @@ iap_dialogs_plugin_cancel(DBusMessage *message) \
   return iap_dialog_##dialog##_cancel(message); \
 }
 
-typedef void (*iap_dialogs_showing_fn)(DBusMessage *message);
+typedef void (*iap_dialogs_showing_fn)(void);
 typedef void (*iap_dialogs_done_fn)(int iap_id, gboolean unk);
 
 typedef gboolean (*iap_dialogs_match_fn)(DBusMessage *message);
-typedef gboolean (*iap_dialogs_show_fn)(int iap_id, DBusMessage *message, iap_dialogs_showing_fn showing, iap_dialogs_done_fn done, osso_context_t libosso);
+typedef gboolean (*iap_dialogs_show_fn)(int iap_id, DBusMessage *message, iap_dialogs_showing_fn showing, iap_dialogs_done_fn done, osso_context_t *libosso);
 typedef gboolean (*iap_dialogs_cancel_fn)(DBusMessage *message);
 
 DBusConnection *iap_dialog_get_connection(DBusMessage *message);
-void iap_dialog_register_service(gchar *service, gchar *path);
-//iap_dialog_request_dialog
-void iap_dialog_unregister_service(gchar *service, gchar *path);
-
+gboolean iap_dialog_register_service(const char *service, const char *path);
+int iap_dialog_request_dialog(guint timeout, iap_dialogs_done_fn *done_cb, osso_context_t **osso_context);
+void iap_dialog_unregister_service(const char *service, const char *path);
