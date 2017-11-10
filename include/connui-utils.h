@@ -23,4 +23,6 @@ GSList *connui_utils_notify_add(GSList *list, connui_utils_notify callback, gpoi
  */
 void connui_utils_notify_notify(GSList *list, gpointer first_arg, ...);
 
+void open_log(const char *ident, gboolean open);
+
 #endif
