@@ -1,4 +1,4 @@
-SUBDIRS = connui
+SUBDIRS = connui conndlgs
 
 pkginclude_HEADERS = 
 
