@@ -400,7 +400,7 @@ iap_dialog_pending_requests_cb(dialog_info_s *dialog_info)
       if (plugin->show)
       {
         if (!plugin->show(iap_id, message, iap_dialog_showing, iap_dialog_done,
-                          dialog_info->osso_context) )
+                          dialog_info->osso_context))
         {
           CONNUI_ERR("Unable to show dialog");
           iap_dialog_done(iap_id, FALSE);
