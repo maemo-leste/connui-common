@@ -10,3 +10,12 @@ Architecture: any
 Depends: ${shlibs:Depends}
 Description: Common connectivity UI library
  This package provides a common connectivity UI library.
+
+Package: connui-conndlgs
+Architecture: any
+Depends: ${shlibs:Depends}
+Replaces: osso-connectivity-ui-conndlgs
+Conflicts: osso-connectivity-ui-conndlgs
+Description: Connectivity Dialogs daemon
+ This package provides the Connectivity Dialogs that are activated via D-Bus
+ requested by ICd and other parties.

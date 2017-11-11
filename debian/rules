@@ -1,5 +1,7 @@
 #!/usr/bin/make -f
 
+export DH_VERBOSE=1
+
 include /usr/share/cdbs/1/rules/debhelper.mk
 include /usr/share/cdbs/1/class/autotools.mk
 
@@ -10,8 +12,18 @@ DEB_DH_INSTALL_SOURCEDIR=debian/tmp
 
 DEB_CONFIGURE_EXTRA_FLAGS = --disable-static
 
+ifeq (,$(findstring nolauncher,$(DEB_BUILD_OPTIONS)))
+	DEB_CONFIGURE_EXTRA_FLAGS += --enable-maemo-launcher
+	USE_MAEMO_LAUNCHER = true
+endif
+
 CFLAGS += -Werror
 
 makebuilddir::
-	AUTOGEN_SUBDIR_MODE=1 NOCONFIGURE=yes ./autogen.sh
+	[ -f configure ] || AUTOGEN_SUBDIR_MODE=1 NOCONFIGURE=yes ./autogen.sh;
 
+binary-install/connui-conndlgs::
+	if test "x$(USE_MAEMO_LAUNCHER)" = "xtrue"; then \
+		dh_maemolauncher -pconnui-conndlgs usr/bin/osso-connectivity-ui-conndlgs; \
+	fi
+	dh_installxsession -u 'post 24'

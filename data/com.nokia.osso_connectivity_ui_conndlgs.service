@@ -1,0 +1,4 @@
+[D-BUS Service]
+Name=com.nokia.osso_connectivity_ui_conndlgs
+Exec=/usr/bin/osso-connectivity-ui-conndlgs
+User=user
