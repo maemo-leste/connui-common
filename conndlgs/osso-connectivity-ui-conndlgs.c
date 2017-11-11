@@ -648,7 +648,7 @@ iap_dialog_unregister_service(const char *service, const char *path)
 }
 
 int
-main(int argc, char *const *argv)
+main(int argc, char **argv)
 {
   gboolean should_open = TRUE;
   dialog_info_s *info;
@@ -656,16 +656,15 @@ main(int argc, char *const *argv)
   DBusMessage *mcall;
   int user_data;
 
-  if ( !g_threads_got_initialized )
-    g_thread_init((GThreadFunctions *)g_threads_got_initialized);
+  if (!g_thread_supported())
+    g_thread_init(NULL);
 
   setlocale(LC_ALL, "");
   bindtextdomain("osso-connectivity-ui", "/usr/share/locale");
   textdomain("osso-connectivity-ui");
-  hildon_gtk_init(&argc, (char ***)&argv);
+  hildon_gtk_init(&argc, &argv);
   dbus_g_thread_init();
 
-  should_open = 1;
   while (1)
   {
     int opt = getopt(argc, argv, "s");
