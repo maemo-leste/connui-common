@@ -1,3 +1,9 @@
+connui-common (2.88) unstable; urgency=medium
+
+  * Prepare Maemo Leste packaging
+
+ -- Ivan J. <parazyd@dyne.org>  Mon, 13 Nov 2017 15:08:00 +0100
+
 connui-common (2.88+0m5) unstable; urgency=low
 
   * This entry has been added by BIFH queue processor
