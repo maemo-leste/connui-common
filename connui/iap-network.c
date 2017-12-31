@@ -274,3 +274,56 @@ iap_network_entry_network_compare(network_entry *network1,
 
   return rv;
 }
+
+gboolean
+iap_network_entry_equal(gconstpointer a, gconstpointer b)
+{
+  const network_entry *entry1 = a;
+  const network_entry *entry2 = b;
+
+  if (!entry1->service_type && entry2->service_type)
+    return FALSE;
+
+  if (!entry1->service_id && entry2->service_id)
+    return FALSE;
+
+  if (!entry1->network_type && entry2->network_type)
+    return FALSE;
+
+  if (!entry1->network_id && entry2->network_id)
+    return FALSE;
+
+  if ( !entry2->service_type && entry1->service_type)
+    return FALSE;
+
+  if (!entry2->service_id && entry1->service_id)
+    return FALSE;
+
+  if (!entry2->network_type && entry1->network_type)
+    return FALSE;
+
+  if (!entry2->network_id && entry1->network_id)
+    return FALSE;
+
+  if (((entry1->network_attributes & ICD_NW_ATTR_LOCALMASK) !=
+       (entry2->network_attributes & ICD_NW_ATTR_LOCALMASK)) ||
+      entry1->service_attributes != entry2->service_attributes)
+  {
+    return FALSE;
+  }
+
+
+  if ((entry1->service_type && entry2->service_type &&
+       strcmp(entry1->service_type, entry2->service_type)) ||
+      (entry1->service_id && entry2->service_id &&
+       strcmp(entry1->service_id, entry2->service_id)) ||
+      (entry1->network_type && entry2->network_type &&
+       strcmp(entry1->network_type, entry2->network_type)))
+  {
+    return FALSE;
+  }
+  else if (entry1->network_id && entry2->network_id)
+    return strcmp(entry1->network_id, entry2->network_id) == 0;
+
+  return TRUE;
+}

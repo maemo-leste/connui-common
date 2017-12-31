@@ -24,5 +24,6 @@ gboolean iap_network_entry_disconnect(guint connection_flags, network_entry *ent
 gboolean iap_network_entry_is_saved(network_entry *entry);
 int iap_network_entry_compare(network_entry *network1, network_entry *network2);
 int iap_network_entry_network_compare(network_entry *network1, network_entry *network2);
+gboolean iap_network_entry_equal(gconstpointer a, gconstpointer b);
 
 #endif // IAPNETWORK_H
