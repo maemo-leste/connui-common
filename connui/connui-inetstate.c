@@ -495,6 +495,125 @@ connui_inetstate_icd_dbus_watcher(gchar *name, gchar *old_owner,
   }
 }
 
+static DBusHandlerResult
+connui_inetstate_icd_signal_cb(DBusConnection *connection, DBusMessage *message,
+                               void *user_data)
+{
+  struct inetstate **inetstate = (struct inetstate **)user_data;
+  DBusMessageIter iter;
+  network_entry entry;
+  dbus_uint32_t connection_state;
+  gchar *network_type = NULL;
+
+  if (!inetstate || !*inetstate || (*inetstate)->offline ||
+      !dbus_message_is_signal(message, ICD_DBUS_API_INTERFACE,
+                              ICD_DBUS_API_STATE_SIG))
+  {
+    return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
+  }
+
+  memset(&entry, 0, sizeof(entry));
+  dbus_message_iter_init(message, &iter);
+
+  if (!iap_network_entry_from_dbus_iter(&iter, &entry))
+    goto out;
+
+  connui_dbus_get_value_and_iterate(&iter, DBUS_TYPE_STRING, &network_type);
+
+  if (!connui_dbus_get_value_and_iterate(&iter,
+                                         DBUS_TYPE_UINT32, &connection_state))
+  {
+    CONNUI_ERR("connui_inetstate: unable to get error state from signal");
+    goto out;
+  }
+
+  if (entry.network_type && *entry.network_type &&
+      entry.network_id && *entry.network_id)
+  {
+    struct inetstate_conn_data *connected = NULL;
+    struct inetstate_conn_data *connecting = NULL;
+
+    if ((*inetstate)->timeout_id)
+    {
+      g_source_remove((*inetstate)->timeout_id);
+      (*inetstate)->timeout_id = 0;
+    }
+
+    switch (connection_state)
+    {
+      case ICD_STATE_DISCONNECTED:
+      {
+        if (*network_type)
+        {
+          struct inetstate_conn_data *conn_data = (struct inetstate_conn_data *)
+              g_hash_table_lookup((*inetstate)->connected, &entry);
+
+          if (!conn_data)
+          {
+            conn_data = (struct inetstate_conn_data *)
+                g_hash_table_lookup((*inetstate)->connecting, &entry);
+          }
+
+          if (conn_data && conn_data->connected)
+          {
+            connui_inetstate_notifiers_notify(*inetstate,
+                                              INETSTATE_STATUS_DISCONNECTED,
+                                              &entry);
+          }
+        }
+
+        g_hash_table_remove((*inetstate)->connected, &entry);
+        g_hash_table_remove((*inetstate)->connecting, &entry);
+        break;
+      }
+      case ICD_STATE_CONNECTING:
+      case ICD_STATE_DISCONNECTING:
+      {
+        struct inetstate_conn_data *conn_data =
+            g_new0(struct inetstate_conn_data, 1);
+
+        conn_data->entry = iap_network_entry_dup(&entry);;
+        conn_data->connecting = connection_state == ICD_STATE_CONNECTING;
+        conn_data->connected =
+            g_hash_table_lookup((*inetstate)->connected, &entry) != NULL;
+        g_hash_table_remove((*inetstate)->connected, &entry);
+        g_hash_table_replace((*inetstate)->connecting, conn_data->entry,
+                             conn_data);
+        connecting = conn_data;
+        break;
+      }
+      case ICD_STATE_CONNECTED:
+      {
+        struct inetstate_conn_data *conn_data =
+            g_new0(struct inetstate_conn_data, 1);
+
+        conn_data->entry = iap_network_entry_dup(&entry);
+        conn_data->connected = TRUE;
+        g_hash_table_replace((*inetstate)->connected, conn_data->entry,
+                             conn_data);
+        g_hash_table_remove((*inetstate)->connecting, &entry);
+        connected = conn_data;
+        break;
+      }
+      default:
+        CONNUI_ERR("Unknown state %d received from ICd2", connection_state);
+        goto out;
+    }
+
+    connui_inetstat_report_state(inetstate, connecting, connected, &entry);
+  }
+  else
+  {
+   CONNUI_ERR("connui_inetstate: ICd sent %s with invalid values",
+              ICD_DBUS_API_STATE_SIG);
+  }
+
+out:
+  iap_network_entry_clear(&entry);
+
+  return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
+}
+
 gboolean
 connui_inetstate_status(inetstate_cb callback, gpointer user_data)
 {

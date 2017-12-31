@@ -17,7 +17,8 @@ enum inetstate_status {
   INETSTATE_STATUS_ONLINE,
   INETSTATE_STATUS_CONNECTING,
   INETSTATE_STATUS_CONNECTED,
-  INETSTATE_STATUS_DISCONNECTING
+  INETSTATE_STATUS_DISCONNECTING,
+  INETSTATE_STATUS_DISCONNECTED
 };
 
 typedef void (*inetstate_cb) (enum inetstate_status state, network_entry *entry, gpointer user_data);
