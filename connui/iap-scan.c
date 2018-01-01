@@ -1302,3 +1302,129 @@ iap_scan_start(int flags,
         selection_changed_cb,
         user_data);
 }
+
+int
+iap_scan_default_sort_func(GtkTreeModel *model, GtkTreeIter *iter1,
+                           GtkTreeIter *iter2, connui_scan_entry *entry)
+{
+  int rv;
+  gchar *service_text2 = NULL;
+  gchar *service_text1 = NULL;
+  connui_scan_entry *entry2 = NULL;
+  connui_scan_entry *entry1 = NULL;
+  gboolean unk2 = FALSE;
+  gboolean unk1 = FALSE;
+
+  gtk_tree_model_get(model, iter1, IAP_SCAN_LIST_UNKNOWN_BOOL, &unk1, -1);
+  gtk_tree_model_get(model, iter2, IAP_SCAN_LIST_UNKNOWN_BOOL, &unk2, -1);
+
+  if (unk1 && !unk2)
+    return -1;
+
+  if (!unk1 && unk2)
+    return 1;
+
+  gtk_tree_model_get(model, iter1, IAP_SCAN_LIST_SCAN_ENTRY, &entry1, -1);
+  gtk_tree_model_get(model, iter2, IAP_SCAN_LIST_SCAN_ENTRY, &entry2, -1);
+
+  if (entry1 && entry2)
+  {
+    gchar *service_id1 = entry1->network.service_id;
+    gchar *service_id2 = entry2->network.service_id;
+    gchar *service_type1 = entry1->network.service_type;
+    gchar *service_type2 = entry2->network.service_type;
+
+    if (entry2->network.network_id && *entry2->network.network_id)
+    {
+      connui_wlan_info **info;
+
+      if (!entry1->network.network_id || !*entry1->network.network_id)
+        return 1;
+
+      info = get_wlan_info();
+
+      if (info && *info && (*info)->preffered_type && (*info)->preffered_id)
+      {
+        gchar *preffered_type = (*info)->preffered_type;
+        gchar *preffered_id = (*info)->preffered_id;
+        gboolean entry1_preffered = FALSE;
+
+        if (service_type1 && *service_type1 &&
+            !strcmp(service_type1, preffered_type) &&
+            service_id1 && *service_id1 &&
+            !strcmp(service_id1, preffered_id))
+        {
+          entry1_preffered = TRUE;
+        }
+
+        if (service_type2 && *service_type2 &&
+            !strcmp(service_type2, preffered_type) &&
+            service_id2 && *service_id2 &&
+            !strcmp(service_id2, preffered_id))
+        {
+          if (!entry1_preffered)
+            return 1;
+        }
+        else if (entry1_preffered)
+          return -1;
+      }
+
+      if (entry && entry->network.network_type)
+      {
+        if (!iap_network_entry_network_compare(&entry->network,
+                                               &entry1->network))
+        {
+          return -1;
+        }
+
+        if (!iap_network_entry_network_compare(&entry->network,
+                                               &entry2->network))
+        {
+          return 1;
+        }
+      }
+
+      if (entry1->network_priority > entry2->network_priority)
+        return -1;
+
+      if (entry1->network_priority < entry2->network_priority)
+        return 1;
+
+      if (service_type1 && !service_type2)
+        return -1;
+
+      if (!service_type1 && service_type2)
+        return 1;
+
+      if (service_type1 && service_type2 &&
+          !strcmp(service_type1, service_type2))
+      {
+        if (entry1->service_priority > entry2->service_priority)
+          return -1;
+
+        if ( entry1->service_priority < entry2->service_priority)
+          return 1;
+      }
+    }
+    else if (entry1->network.network_id && *entry1->network.network_id)
+      return -1;
+  }
+
+  gtk_tree_model_get(model, iter1,
+                     IAP_SCAN_LIST_SERVICE_TEXT, &service_text1,
+                     -1);
+  gtk_tree_model_get(model, iter2,
+                     IAP_SCAN_LIST_SERVICE_TEXT, &service_text2,
+                     -1);
+  if (service_text1 && !service_text2)
+    rv = -1;
+  else if (!service_text1 && service_text2)
+    rv = 1;
+  else
+    rv = strcoll(service_text1, service_text2);
+
+  g_free(service_text1);
+  g_free(service_text2);
+
+  return rv;
+}
