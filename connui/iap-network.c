@@ -327,3 +327,28 @@ iap_network_entry_equal(gconstpointer a, gconstpointer b)
 
   return TRUE;
 }
+
+guint
+iap_network_entry_hash(gconstpointer key)
+{
+  const network_entry *entry = (network_entry *)key;
+  guint64 hash_sum = 0;
+
+  if (entry->service_type)
+    hash_sum = g_str_hash(entry->service_type);
+
+  hash_sum += g_int_hash(&entry->service_attributes);
+
+  if (entry->service_id)
+    hash_sum += g_str_hash(entry->service_id);
+
+  if (entry->network_type)
+    hash_sum += g_str_hash(entry->network_type);
+
+  hash_sum += g_int_hash(&entry->network_attributes);
+
+  if (entry->network_id)
+    hash_sum += g_str_hash(entry->network_id);
+
+  return hash_sum / 6ULL;
+}
