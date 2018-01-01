@@ -679,3 +679,43 @@ ok:
 
   return TRUE;
 }
+
+void
+connui_inetstate_close(inetstate_cb callback)
+{
+  struct inetstate **inetstate = inetstate_get();
+
+  if (!*inetstate)
+    return;
+
+  (*inetstate)->notifiers =
+      connui_utils_notify_remove((*inetstate)->notifiers,
+                                 (connui_utils_notify)callback);
+
+  if ((*inetstate)->notifiers)
+    return;
+
+  if ((*inetstate)->pending)
+  {
+    dbus_pending_call_cancel((*inetstate)->pending);
+    dbus_pending_call_unref((*inetstate)->pending);
+    (*inetstate)->pending = NULL;
+  }
+
+  if ((*inetstate)->timeout_id)
+  {
+    g_source_remove((*inetstate)->timeout_id);
+    (*inetstate)->timeout_id = 0;
+  }
+
+  connui_dbus_unregister_watcher(connui_inetstate_icd_dbus_watcher,
+                                 ICD_DBUS_API_INTERFACE);
+  connui_flightmode_close(connui_inetstate_flightmode_cb);
+  connui_dbus_disconnect_system_bcast_signal(ICD_DBUS_API_INTERFACE,
+                                             connui_inetstate_icd_signal_cb,
+                                             inetstate, NULL);
+  g_hash_table_destroy((*inetstate)->connected);
+  g_hash_table_destroy((*inetstate)->connecting);
+  g_free(*inetstate);
+  *inetstate = NULL;
+}

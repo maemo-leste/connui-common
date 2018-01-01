@@ -28,5 +28,6 @@ gboolean connui_inetstate_statistics_start(gint interval, inetstate_stats_cb cal
 void connui_inetstate_statistics_stop(inetstate_stats_cb callback);
 
 gboolean connui_inetstate_status(inetstate_cb callback, gpointer user_data);
+void connui_inetstate_close(inetstate_cb callback);
 
 #endif // CONNUI_INETSTATE_H
