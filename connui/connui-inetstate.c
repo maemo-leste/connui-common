@@ -417,7 +417,7 @@ connui_inetstate_state_req_cb(DBusPendingCall *pending, void *user_data)
 }
 
 static void
-connui_inetstate_flightmode_cb(gboolean offline, gpointer user_data)
+connui_inetstate_flightmode_cb(dbus_bool_t offline, gpointer user_data)
 {
   struct inetstate **inetstate = (struct inetstate **)user_data;
   gboolean was_offline;
