@@ -21,4 +21,5 @@ void iap_scan_stop();
 
 gboolean iap_scan_add_scan_entry(connui_scan_entry *scan_entry, gboolean unk);
 
+int iap_scan_default_sort_func(GtkTreeModel *model, GtkTreeIter *iter1,GtkTreeIter *iter2, connui_scan_entry *entry);
 #endif // IAPSCAN_H

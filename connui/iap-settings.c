@@ -2,6 +2,7 @@
 
 #include <string.h>
 #include <libintl.h>
+#include <ctype.h>
 
 #include "connui-log.h"
 #include "iap-common.h"
@@ -741,4 +742,27 @@ iap_settings_get_iap_icon_name_by_id(const gchar *iap)
   g_free(service_id);
 
   return icon_name;
+}
+
+gboolean
+iap_settings_is_empty(const gchar *iap)
+{
+  size_t len;
+  size_t i;
+
+  if (!iap)
+    return TRUE;
+
+  len = strlen(iap);
+
+  if (!len)
+    return TRUE;
+
+  for (i = 0; i < len; i++)
+  {
+    if (!isspace(iap[i]))
+      return FALSE;
+  }
+
+  return TRUE;
 }
