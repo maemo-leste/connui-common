@@ -1,7 +1,7 @@
 #include <gtk/gtk.h>
-#include <syslog.h>
 
 #include "connui-pixbuf-cache.h"
+#include "connui-log.h"
 
 struct _ConnuiPixbufCache
 {
@@ -206,7 +206,7 @@ connui_pixbuf_load(const gchar *icon, gint size)
 
   if (error)
   {
-    syslog(11, "error loading pixbuf '%s': %s", icon, error->message);
+    CONNUI_ERR("error loading pixbuf '%s': %s", icon, error->message);
     g_error_free(error);
   }
 

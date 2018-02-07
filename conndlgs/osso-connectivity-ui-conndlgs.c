@@ -195,7 +195,7 @@ iap_dialog_cleanup(dialog_info_s *info)
       g_slist_free_1(pending);
     }
     else
-      syslog(11, "element '%p' in the pending list contains no data", pending);
+      CONNUI_ERR("element '%p' in the pending list contains no data", pending);
 
     pending = next;
 
