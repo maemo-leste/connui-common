@@ -1,4 +1,5 @@
 #include <gconf/gconf-client.h>
+#include <icd/osso-ic-gconf.h>
 
 #include <string.h>
 #include <libintl.h>
@@ -47,7 +48,7 @@ iap_settings_create_iap_id()
     g_strchomp(g_strchug(uuid));
 
     s = gconf_escape_key(uuid, -1);
-    client_dir = g_strconcat("/system/osso/connectivity/IAP", "/", s, NULL);
+    client_dir = g_strconcat(ICD_GCONF_PATH, "/", s, NULL);
     g_free(s);
     exists = gconf_client_dir_exists(gconf, client_dir, NULL);
     g_free(client_dir);
@@ -164,7 +165,7 @@ iap_settings_remove_iap(const gchar *iap_name)
     return FALSE;
 
   s = gconf_escape_key(iap_name, -1);
-  key = g_strconcat("/system/osso/connectivity/IAP", "/", s, NULL);
+  key = g_strconcat(ICD_GCONF_PATH, "/", s, NULL);
   gconf_client_recursive_unset(
         gconf, key, GCONF_UNSET_INCLUDING_SCHEMA_NAMES, NULL);
   gconf_client_suggest_sync(gconf, NULL);
@@ -765,4 +766,71 @@ iap_settings_is_empty(const gchar *iap)
   }
 
   return TRUE;
+}
+
+gboolean
+iap_settings_iap_exists(const gchar *iap_name, const gchar *iap)
+{
+  GConfClient *gconf;
+  GSList *dirs;
+  GSList *l;
+  GError *err = NULL;
+  gboolean exists = FALSE;
+
+  g_return_val_if_fail(iap_name != NULL, FALSE);
+
+  if (!(gconf = gconf_client_get_default()))
+  {
+      CONNUI_ERR("Unable to get GConfClient!");
+      return FALSE;
+  }
+
+  dirs = gconf_client_all_dirs(gconf, ICD_GCONF_PATH, &err);
+
+  if (err)
+  {
+    CONNUI_ERR("Unable to get IAP list from GConf: %s", err->message);
+    g_clear_error(&err);
+    g_object_unref(gconf);
+    return FALSE;
+  }
+
+  for (l = dirs; l; l= l->next)
+  {
+    gchar *dir = l->data;
+    char *unescaped;
+    gchar *key;
+    gchar *name;
+
+    if (!dir)
+    {
+      CONNUI_ERR("gconf is broken, got NULL data from 'gconf_client_all_dirs()'");
+      continue;
+    }
+
+    key = g_strconcat(dir, "/name", NULL);
+    name = gconf_client_get_string(gconf, key, NULL);
+    g_free(key);
+    unescaped = gconf_unescape_key(g_strrstr(dir, "/") + 1, -1);
+
+    if (!iap || strcmp(unescaped, iap))
+    {
+      if (name)
+        exists = !strcmp(name, iap_name);
+      else if (unescaped)
+        exists = !strcmp(unescaped, iap_name);
+    }
+
+    g_free(unescaped);
+    g_free(name);
+    g_free(dir);
+
+    if (exists)
+      break;
+  }
+
+  g_slist_free(dirs);
+  g_object_unref(gconf);
+
+  return exists;
 }

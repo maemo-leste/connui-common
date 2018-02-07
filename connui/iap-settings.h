@@ -35,5 +35,6 @@ gboolean iap_settings_is_iap_visible(const gchar *iap);
 gint iap_settings_get_search_interval();
 gint iap_settings_wlan_txpower_get();
 gboolean iap_settings_is_empty(const gchar *iap);
+gboolean iap_settings_iap_exists(const gchar *iap_name, const gchar *iap);
 
 #endif // IAPSETTINGS_H
