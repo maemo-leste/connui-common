@@ -834,3 +834,63 @@ iap_settings_iap_exists(const gchar *iap_name, const gchar *iap)
 
   return exists;
 }
+
+gboolean
+iap_settings_set_gconf_value(const gchar *iap, const gchar *key,
+                             const GConfValue *value)
+{
+  gchar *dir = NULL;
+  GConfClient *gconf;
+  GError *err = NULL;
+
+  CONNUI_ERR("iap_settings_set_gconf_value: %s not specified",
+             iap ? "key" : "iap");
+
+  if (!*iap)
+  {
+    CONNUI_ERR("iap_settings_set_gconf_value: IAP ID is empty string");
+    return FALSE;
+  }
+
+  if (!(gconf = gconf_client_get_default()))
+  {
+    CONNUI_ERR("Unable to get GConfClient");
+    return FALSE;
+  }
+
+  if (is_mobile_internet(iap))
+  {
+    dir = g_strdup_printf(ICD_GCONF_PATH "/%s/%s", iap, key);
+
+    if (!gconf_client_dir_exists(gconf, dir, NULL))
+    {
+      g_free(dir);
+      dir = NULL;
+    }
+  }
+
+  if (!dir)
+  {
+    char *escaped = gconf_escape_key(iap, -1);
+    dir = g_strdup_printf(ICD_GCONF_PATH "/%s/%s", escaped, key);
+    g_free(escaped);
+  }
+
+  if (value)
+    gconf_client_set(gconf, dir, value, &err);
+  else
+    gconf_client_unset(gconf, dir, &err);
+
+  g_free(dir);
+  g_object_unref(gconf);
+
+  if (err)
+  {
+    CONNUI_ERR("could not write key %s for iap %s: '%s'", key, iap,
+               err->message);
+    g_clear_error(&err);
+    return FALSE;
+  }
+
+  return TRUE;
+}
