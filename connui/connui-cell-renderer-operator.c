@@ -32,21 +32,31 @@ typedef struct _ConnuiCellRendererOperatorClass ConnuiCellRendererOperatorClass;
 
 G_DEFINE_TYPE(ConnuiCellRendererOperator, connui_cell_renderer_operator, GTK_TYPE_CELL_RENDERER_TEXT);
 
-GtkCellRenderer *connui_cell_renderer_operator_new()
+GtkCellRenderer *
+connui_cell_renderer_operator_new()
 {
   return
       GTK_CELL_RENDERER(g_object_new(CONNUI_TYPE_CELL_RENDERER_OPERATOR, NULL));
 }
 
-static void connui_cell_renderer_operator_get_size(GtkCellRenderer *cell, GtkWidget *widget, GdkRectangle *cell_area, gint *x_offset, gint *y_offset, gint *width, gint *height)
+static void
+connui_cell_renderer_operator_get_size(GtkCellRenderer *cell, GtkWidget *widget,
+                                       GdkRectangle *cell_area, gint *x_offset,
+                                       gint *y_offset, gint *width,
+                                       gint *height)
 {
   //todo
 }
 
-static void connui_cell_renderer_operator_render(GtkCellRenderer *cell, GdkDrawable *window, GtkWidget *widget, GdkRectangle *background_area, GdkRectangle *cell_area, GdkRectangle *expose_area, GtkCellRendererState flags)
+static void
+connui_cell_renderer_operator_render(GtkCellRenderer *cell, GdkDrawable *window,
+                                     GtkWidget *widget,
+                                     GdkRectangle *background_area,
+                                     GdkRectangle *cell_area,
+                                     GdkRectangle *expose_area,
+                                     GtkCellRendererState flags)
 {
-  ConnuiCellRendererOperator *self;
-  GtkCellRendererClass *rendererclass;
+  ConnuiCellRendererOperator *self = CONNUI_CELL_RENDERER_OPERATOR(cell);
   GdkRectangle *final_background_area;
   GdkRectangle *final_cell_area;
   GdkRectangle *final_expose_area;
@@ -55,56 +65,71 @@ static void connui_cell_renderer_operator_render(GtkCellRenderer *cell, GdkDrawa
   GdkRectangle temp_background_area;
   gint height;
   gint width;
-  self = CONNUI_CELL_RENDERER_OPERATOR(cell);
+
   gtk_cell_renderer_get_size(self->pixbuf, widget, 0, 0, 0, &width, &height);
-  gtk_cell_renderer_render(self->pixbuf, window, widget, background_area, cell_area, expose_area, flags);
+  gtk_cell_renderer_render(self->pixbuf, window, widget, background_area,
+                           cell_area, expose_area, flags);
+
   if (background_area)
   {
     temp_background_area.x = background_area->x;
     temp_background_area.y = background_area->y;
     temp_background_area.width = background_area->width;
     temp_background_area.height = background_area->height;
+
     if (background_area->width - width < 0)
       return;
+
     temp_background_area.width = background_area->width - width;
     temp_background_area.x = width + background_area->x;
   }
+
   if (cell_area)
   {
     temp_cell_area.x = cell_area->x;
     temp_cell_area.y = cell_area->y;
     temp_cell_area.width = cell_area->width;
     temp_cell_area.height = cell_area->height;
+
     if (cell_area->width - width < 0)
       return;
+
     temp_cell_area.width = cell_area->width - width;
     temp_cell_area.x = width + cell_area->x;
   } 
+
   if (expose_area)
   {
     temp_expose_area.x = expose_area->x;
     temp_expose_area.y = expose_area->y;
     temp_expose_area.width = expose_area->width;
     temp_expose_area.height = expose_area->height;
+
     if (expose_area->width - width < 0)
       return;
+
     temp_expose_area.width = expose_area->width - width;
     temp_expose_area.x = width + expose_area->x;
   } 
-  rendererclass = GTK_CELL_RENDERER_CLASS(connui_cell_renderer_operator_parent_class);
+
   if (background_area)
     final_background_area = &temp_background_area;
   else
     final_background_area = 0;
+
   if (cell_area)
     final_cell_area = &temp_cell_area;
   else
     final_cell_area = 0;
+
   if (expose_area)
     final_expose_area = &temp_expose_area;
   else
     final_expose_area = 0;
-  rendererclass->render(cell, window, widget, final_background_area, final_cell_area, final_expose_area, flags);
+
+  GTK_CELL_RENDERER_CLASS(connui_cell_renderer_operator_parent_class)->
+      render(cell, window, widget, final_background_area, final_cell_area,
+             final_expose_area, flags);
 }
 
 static void
@@ -302,17 +327,17 @@ connui_cell_renderer_operator_class_init(ConnuiCellRendererOperatorClass *klass)
                                                       "Service type",
                                                       "Service type which is used to set logo and markup",
                                                       NULL,
-                                                      G_PARAM_WRITABLE|G_PARAM_READABLE));
+                                                      G_PARAM_WRITABLE | G_PARAM_READABLE));
   g_object_class_install_property(object_class, PROP_SERVICE_ID,
                                   g_param_spec_string("service-id",
                                                       "Service ID",
                                                       "Service ID which is used to set logo and markup",
                                                       NULL,
-                                                      G_PARAM_WRITABLE|G_PARAM_READABLE));
+                                                      G_PARAM_WRITABLE | G_PARAM_READABLE));
   g_object_class_install_property(object_class, PROP_SERVICE_TEXT,
                                   g_param_spec_string("service-text",
                                                       "Service text",
                                                       "Service text is used to set text content",
                                                       NULL,
-                                                      G_PARAM_WRITABLE|G_PARAM_READABLE));
+                                                      G_PARAM_WRITABLE | G_PARAM_READABLE));
 }
