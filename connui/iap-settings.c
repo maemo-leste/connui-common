@@ -132,9 +132,7 @@ iap_settings_get_auto_connect()
 
   gconf = gconf_client_get_default();
   auto_connect =
-      gconf_client_get_string(gconf,
-                              "/system/osso/connectivity/IAP/auto_connect",
-                              NULL);
+      gconf_client_get_string(gconf, ICD_GCONF_PATH "/auto_connect", NULL);
   g_object_unref(gconf);
 
   return auto_connect;
@@ -257,7 +255,7 @@ iap_settings_get_gconf_value(const gchar *iap, const gchar *key)
 
   if (iap_settings_is_possibly_gconf_escaped(iap))
   {
-    iap_gconf_key = g_strdup_printf("/system/osso/connectivity/IAP/%s/%s", iap,
+    iap_gconf_key = g_strdup_printf(ICD_GCONF_PATH "/%s/%s", iap,
                                     key);
 
     if (gconf_client_dir_exists(gconf_client, iap_gconf_key, NULL))
@@ -270,8 +268,7 @@ iap_settings_get_gconf_value(const gchar *iap, const gchar *key)
   }
 
   s = gconf_escape_key(iap, -1);
-  iap_gconf_key = g_strdup_printf("/system/osso/connectivity/IAP/%s/%s", s,
-                                  key);
+  iap_gconf_key = g_strdup_printf(ICD_GCONF_PATH "/%s/%s", s, key);
   g_free(s);
 
 read_value:
@@ -664,9 +661,8 @@ iap_settings_get_search_interval()
 
   gconf = gconf_client_get_default();
   interval =
-      gconf_client_get_int(gconf,
-                           "/system/osso/connectivity/IAP/search_interval",
-                           &error);
+      gconf_client_get_int(gconf, ICD_GCONF_PATH "/search_interval", &error);
+
   if (error)
   {
     CONNUI_ERR("could not read search_interval [%s]", error->message);
@@ -687,9 +683,8 @@ iap_settings_wlan_txpower_get()
 
   gconf = gconf_client_get_default();
   wlan_tx_power =
-      gconf_client_get_int(gconf,
-                           "/system/osso/connectivity/IAP/wlan_tx_power",
-                           &error);
+      gconf_client_get_int(gconf, ICD_GCONF_PATH "/wlan_tx_power", &error);
+
   if (error)
   {
     CONNUI_ERR("could not read txpower [%s]", error->message);

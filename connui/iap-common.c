@@ -1,6 +1,7 @@
 #include <dbus/dbus.h>
 #include <gconf/gconf-client.h>
 #include <hildon/hildon.h>
+#include <icd/osso-ic-gconf.h>
 #include <libintl.h>
 #include <libosso.h>
 
@@ -83,21 +84,18 @@ iap_common_get_last_used_network(network_entry *network)
   g_return_if_fail(gconf_client != NULL);
 
   network->network_type =
-      gconf_client_get_string(gconf_client,
-                              "/system/osso/connectivity/IAP/last_used_type",
+      gconf_client_get_string(gconf_client, ICD_GCONF_PATH "/last_used_type",
                               &error);
   if (!error)
   {
     network->network_attributes =
-        gconf_client_get_int(gconf_client,
-                             "/system/osso/connectivity/IAP/last_used_attrs",
+        gconf_client_get_int(gconf_client, ICD_GCONF_PATH "/last_used_attrs",
                              &error);
 
     if (!error)
     {
       network->network_id = gconf_client_get_string(
-            gconf_client,
-            "/system/osso/connectivity/IAP/last_used_network", &error);
+            gconf_client, ICD_GCONF_PATH "/last_used_network", &error);
     }
   }
 
@@ -123,31 +121,25 @@ iap_common_set_last_used_network(network_entry *entry)
 
   if (entry && entry->network_type && entry->network_id)
   {
-    gconf_client_set_string(gconf_client,
-                            "/system/osso/connectivity/IAP/last_used_type",
+    gconf_client_set_string(gconf_client, ICD_GCONF_PATH "/last_used_type",
                             entry->network_type, &error);
     if (error)
       goto err;
 
-    gconf_client_set_int(gconf_client,
-                         "/system/osso/connectivity/IAP/last_used_attrs",
+    gconf_client_set_int(gconf_client, ICD_GCONF_PATH "/last_used_attrs",
                          entry->network_attributes, &error);
 
     if (error)
       goto err;
 
-    gconf_client_set_string(gconf_client,
-                            "/system/osso/connectivity/IAP/last_used_network",
+    gconf_client_set_string(gconf_client, ICD_GCONF_PATH "/last_used_network",
                             entry->network_id, &error);
   }
   else
   {
-    gconf_client_unset(gconf_client,
-                       "/system/osso/connectivity/IAP/last_used_type", NULL);
-    gconf_client_unset(gconf_client,
-                       "/system/osso/connectivity/IAP/last_used_attrs", NULL);
-    gconf_client_unset(gconf_client,
-                       "/system/osso/connectivity/IAP/last_used_network", NULL);
+    gconf_client_unset(gconf_client, ICD_GCONF_PATH "/last_used_type", NULL);
+    gconf_client_unset(gconf_client, ICD_GCONF_PATH "/last_used_attrs", NULL);
+    gconf_client_unset(gconf_client, ICD_GCONF_PATH "/last_used_network", NULL);
   }
 
   if (!error)
