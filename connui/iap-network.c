@@ -1,5 +1,6 @@
 #include <gconf/gconf-client.h>
 #include <icd/network_api_defines.h>
+#include <icd/dbus_api.h>
 
 #include <string.h>
 
@@ -181,10 +182,10 @@ iap_network_entry_disconnect(guint connection_flags, network_entry *entry)
   DBusMessageIter iter;
   int reply_type;
 
-  mcall = connui_dbus_create_method_call("com.nokia.icd2",
-                                         "/com/nokia/icd2",
-                                         "com.nokia.icd2",
-                                         "disconnect_req",
+  mcall = connui_dbus_create_method_call(ICD_DBUS_API_INTERFACE,
+                                         ICD_DBUS_API_PATH,
+                                         ICD_DBUS_API_INTERFACE,
+                                         ICD_DBUS_API_DISCONNECT_REQ,
                                          DBUS_TYPE_INVALID);
   if (!mcall)
     return FALSE;
@@ -351,4 +352,84 @@ iap_network_entry_hash(gconstpointer key)
     hash_sum += g_str_hash(entry->network_id);
 
   return hash_sum / 6ULL;
+}
+
+gboolean
+iap_network_entry_connect(guint connection_flags, network_entry **entries)
+{
+  DBusMessage *mcall;
+  DBusMessage *reply;
+  DBusMessageIter sub;
+  DBusMessageIter sub1;
+  DBusMessageIter iter;
+
+  mcall = connui_dbus_create_method_call(ICD_DBUS_API_INTERFACE,
+                                         ICD_DBUS_API_PATH,
+                                         ICD_DBUS_API_INTERFACE,
+                                         ICD_DBUS_API_CONNECT_REQ,
+                                         DBUS_TYPE_INVALID);
+  if (!mcall)
+    return FALSE;
+
+  dbus_message_iter_init_append(mcall, &iter);
+
+  if (!dbus_message_iter_append_basic(&iter,
+                                      DBUS_TYPE_UINT32, &connection_flags))
+  {
+    goto err_out;
+  }
+
+  if (entries)
+  {
+    if (!dbus_message_iter_open_container(&iter,
+                                          DBUS_TYPE_ARRAY, "(sussuay)", &sub))
+    {
+      goto err_out;
+    }
+
+    if (*entries)
+    {
+      while (dbus_message_iter_open_container(&sub, DBUS_TYPE_STRUCT, NULL,
+                                              &sub1))
+      {
+        entries++;
+
+        if (!iap_network_entry_to_dbus_iter(&sub1, *entries) ||
+            !dbus_message_iter_close_container(&sub, &sub1) )
+        {
+          break;
+        }
+
+        if (!*entries)
+          goto go_on;
+      }
+
+      goto err_out;
+    }
+
+go_on:
+
+    if (!dbus_message_iter_close_container(&iter, &sub))
+    {
+err_out:
+      dbus_message_unref(mcall);
+      return FALSE;
+    }
+  }
+
+  reply = connui_dbus_recv_reply_system_mcall(mcall);
+  dbus_message_unref(mcall);
+
+  if (!reply)
+    return FALSE;
+
+  if (dbus_message_get_type(reply) == DBUS_MESSAGE_TYPE_ERROR)
+  {
+    dbus_message_unref(reply);
+    return FALSE;
+  }
+
+  dbus_message_unref(reply);
+
+  return TRUE;
 }

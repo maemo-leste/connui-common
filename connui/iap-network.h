@@ -26,5 +26,6 @@ int iap_network_entry_compare(network_entry *network1, network_entry *network2);
 int iap_network_entry_network_compare(network_entry *network1, network_entry *network2);
 gboolean iap_network_entry_equal(gconstpointer a, gconstpointer b);
 guint iap_network_entry_hash(gconstpointer key);
+gboolean iap_network_entry_connect(guint connection_flags, network_entry **entries);
 
 #endif // IAPNETWORK_H
