@@ -207,7 +207,7 @@ iap_settings_is_iaptype_supported(const gchar *type)
 }
 
 static gboolean
-is_mobile_internet(const gchar *iap)
+iap_settings_is_possibly_gconf_escaped(const gchar *iap)
 {
   const gchar *p;
 
@@ -219,7 +219,7 @@ is_mobile_internet(const gchar *iap)
     if (strlen(p) < 4)
       break;
 
-    if (p[3] == '@'&& g_ascii_isdigit(p[1]) && g_ascii_isdigit(p[2]))
+    if (p[3] == '@' && g_ascii_isdigit(p[1]) && g_ascii_isdigit(p[2]))
         return TRUE;
   }
 
@@ -255,7 +255,7 @@ iap_settings_get_gconf_value(const gchar *iap, const gchar *key)
     return NULL;
   }
 
-  if (is_mobile_internet(iap))
+  if (iap_settings_is_possibly_gconf_escaped(iap))
   {
     iap_gconf_key = g_strdup_printf("/system/osso/connectivity/IAP/%s/%s", iap,
                                     key);
@@ -511,7 +511,7 @@ try_name2:
   {
     wlan_common_mangle_ssid(name, strlen(name));
   }
-  else if (is_mobile_internet(entry->network_id))
+  else if (iap_settings_is_possibly_gconf_escaped(entry->network_id))
     name = gconf_unescape_key(entry->network_id, -1);
   else
     name = g_strdup(entry->network_id);
@@ -858,7 +858,7 @@ iap_settings_set_gconf_value(const gchar *iap, const gchar *key,
     return FALSE;
   }
 
-  if (is_mobile_internet(iap))
+  if (iap_settings_is_possibly_gconf_escaped(iap))
   {
     dir = g_strdup_printf(ICD_GCONF_PATH "/%s/%s", iap, key);
 
