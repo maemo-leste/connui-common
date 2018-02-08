@@ -39,13 +39,81 @@ connui_cell_renderer_operator_new()
       GTK_CELL_RENDERER(g_object_new(CONNUI_TYPE_CELL_RENDERER_OPERATOR, NULL));
 }
 
+#define ADDR_OR_NULL(a, b) ((a) ? &(b) : NULL)
+
 static void
 connui_cell_renderer_operator_get_size(GtkCellRenderer *cell, GtkWidget *widget,
                                        GdkRectangle *cell_area, gint *x_offset,
                                        gint *y_offset, gint *width,
                                        gint *height)
 {
-  //todo
+  ConnuiCellRendererOperator *self = CONNUI_CELL_RENDERER_OPERATOR(cell);
+  GdkRectangle ca = {0, 0, 0, 0};
+  gint yoff_pb = 0, xoff_pb = 0, w_pb = 0, h_pb = 0;
+  gint xoff_cr = 0, yoff_cr = 0, w_cr = 0, h_cr = 0;
+
+  gtk_cell_renderer_get_size(self->pixbuf, widget, cell_area,
+                             ADDR_OR_NULL(cell_area, xoff_pb),
+                             ADDR_OR_NULL(cell_area, yoff_pb),
+                             ADDR_OR_NULL(width, w_pb),
+                             ADDR_OR_NULL(height, h_pb));
+
+  if (cell_area)
+  {
+    ca.x = cell_area->x + w_pb;
+    ca.y = cell_area->y;
+    ca.height = cell_area->height;
+    ca.width = cell_area->width - w_pb;
+  }
+
+  if (!cell_area || cell_area->width > w_pb)
+  {
+    void (* get_size)(GtkCellRenderer *cell, GtkWidget *widget, GdkRectangle *,
+                      gint *, gint *, gint *, gint *);
+
+    get_size = GTK_CELL_RENDERER_CLASS(
+          connui_cell_renderer_operator_parent_class)->get_size;
+
+    get_size(cell, widget, ADDR_OR_NULL(cell_area, ca),
+             ADDR_OR_NULL(cell_area, xoff_cr), ADDR_OR_NULL(cell_area, yoff_cr),
+             ADDR_OR_NULL(width, w_cr), ADDR_OR_NULL(height, h_cr));
+  }
+
+  if (width)
+   *width = w_cr + w_pb;
+
+  if (height)
+  {
+   if (h_pb < h_cr)
+     *height = h_cr;
+   else
+     *height = h_pb;
+  }
+
+  if (x_offset)
+   *x_offset = 0;
+
+  if (y_offset)
+   *y_offset = 0;
+
+  if (cell_area)
+  {
+    if (x_offset)
+    {
+      if (xoff_cr > xoff_pb)
+        *x_offset = xoff_pb;
+      else
+        *x_offset = xoff_cr;
+    }
+
+    if (y_offset)
+    {
+      if (yoff_cr > yoff_pb)
+        *y_offset = yoff_pb;
+      else
+        *y_offset = yoff_cr;
+    }
+  }
 }
 
 static void
