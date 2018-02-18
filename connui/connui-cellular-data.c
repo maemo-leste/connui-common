@@ -144,8 +144,8 @@ connui_cellular_data_close(connui_cellular_data_notify callback)
 }
 
 gboolean
-connui_cellular_data_status(connui_cellular_data_notify callback,
-                            gpointer user_data)
+connui_cellular_data_suspended_status(connui_cellular_data_notify callback,
+                                      gpointer user_data)
 {
   connui_cellular_info **info = get_cellular_data_info();
   DBusMessage *mcall;
