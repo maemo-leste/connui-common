@@ -16,12 +16,12 @@ void connui_utils_unblank_display();
 GSList *connui_utils_notify_remove(GSList *list, connui_utils_notify callback);
 GSList *connui_utils_notify_add(GSList *list, connui_utils_notify callback, gpointer user_data);
 
-/*
- * Make sure to call this with such argument(s) after first_arg, so that
- * sizeof(argument) == sizeof(gpointer), otherwise bad things will happen.
- * NULL serves as an end marker.
- */
-void connui_utils_notify_notify(GSList *list, gpointer first_arg, ...);
+void connui_utils_notify_notify_POINTER(GSList *list, gpointer arg1);
+void connui_utils_notify_notify_POINTER_POINTER(GSList *list, gpointer arg1, gpointer arg2);
+void connui_utils_notify_notify_POINTER_POINTER_POINTER(GSList *list, gpointer arg1, gpointer arg2, gpointer arg3);
+void connui_utils_notify_notify_BOOLEAN(GSList *list, gboolean arg1);
+void connui_utils_notify_notify_INT_POINTER(GSList *list, int arg1, gpointer arg2);
+void connui_utils_notify_notify_BOOLEAN_UINT(GSList *list, gboolean arg1, guint arg2);
 
 void open_log(const char *ident, gboolean open);
 

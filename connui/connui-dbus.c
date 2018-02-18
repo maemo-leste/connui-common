@@ -390,11 +390,11 @@ static DBusHandlerResult
 name_owner_changed_cb(DBusConnection *connection, DBusMessage *message,
                       void *user_data)
 {
-  GSList **list = *(GSList ***)user_data;;
+  GSList **list = *(GSList ***)user_data;
   DBusError error;
-  const gchar *new_owner = NULL;
-  const gchar *old_owner = NULL;
-  const gchar *name = NULL;
+  gchar *new_owner = NULL;
+  gchar *old_owner = NULL;
+  gchar *name = NULL;
 
   if (!message || !list || !*list ||
       !dbus_message_is_signal(message,
@@ -412,7 +412,8 @@ name_owner_changed_cb(DBusConnection *connection, DBusMessage *message,
                             DBUS_TYPE_STRING, &new_owner,
                             DBUS_TYPE_INVALID))
   {
-    connui_utils_notify_notify(*list, &name, &old_owner, &new_owner, NULL);
+    connui_utils_notify_notify_POINTER_POINTER_POINTER(*list, name, old_owner,
+                                                       new_owner);
     return DBUS_HANDLER_RESULT_HANDLED ;
   }
 
@@ -425,11 +426,16 @@ name_owner_changed_cb(DBusConnection *connection, DBusMessage *message,
 static dbus_bool_t
 connui_dbus_send_msg(DBusConnection *connection, DBusMessage *message)
 {
+  int type;
+
   g_return_val_if_fail(connection != NULL, FALSE);
   g_return_val_if_fail(message != NULL, FALSE);
 
-  int type = dbus_message_get_type(message);
-  if (type == DBUS_MESSAGE_TYPE_SIGNAL || type == DBUS_MESSAGE_TYPE_METHOD_RETURN || type == DBUS_MESSAGE_TYPE_ERROR)
+  type = dbus_message_get_type(message);
+
+  if (type == DBUS_MESSAGE_TYPE_SIGNAL ||
+      type == DBUS_MESSAGE_TYPE_METHOD_RETURN ||
+      type == DBUS_MESSAGE_TYPE_ERROR)
   {
     dbus_connection_send(connection, message, 0);
     return TRUE;
@@ -471,6 +477,7 @@ connui_dbus_mcall_reply(DBusConnection *connection, DBusMessage *message)
     CONNUI_ERR("dbus message %p is not a method call", message);
     ret = NULL;
   }
+
   return ret;
 }
 
@@ -588,9 +595,10 @@ connui_dbus_register_watcher(connui_dbus_watcher callback, gpointer user_data,
                                                   callback, user_data);
   str = g_strdup_printf("member='NameOwnerChanged',arg0='%s'", match);
 
-  if (str && connui_dbus_connect_system_bcast_signal("org.freedesktop.DBus",
-                                                     name_owner_changed_cb,
-                                                     &connui_dbus_watchers,str))
+  if (str &&
+      connui_dbus_connect_system_bcast_signal("org.freedesktop.DBus",
+                                              name_owner_changed_cb,
+                                              &connui_dbus_watchers, str))
   {
     g_free(str);
     result = TRUE;
@@ -602,14 +610,13 @@ connui_dbus_register_watcher(connui_dbus_watcher callback, gpointer user_data,
                                                        callback);
     g_free(str);
 
-    if (*connui_dbus_watchers)
-      result = FALSE;
-    else
+    if (!*connui_dbus_watchers)
     {
       g_free(connui_dbus_watchers);
-      result = FALSE;
-      connui_dbus_watchers = 0;
+      connui_dbus_watchers = NULL;
     }
+
+    result = FALSE;
   }
 
   return result;

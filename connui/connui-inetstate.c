@@ -85,8 +85,8 @@ connui_inetstate_stats(DBusConnection *connection, DBusMessage *message,
               {
                 if ((*stats)->notifiers)
                 {
-                  connui_utils_notify_notify((*stats)->notifiers, &pentry,
-                                             &pstats, NULL);
+                  connui_utils_notify_notify_POINTER_POINTER(
+                        (*stats)->notifiers, pentry, pstats);
                 }
               }
               else
@@ -272,8 +272,7 @@ connui_inetstate_notifiers_notify(struct inetstate *inetstate,
                                   enum inetstate_status state,
                                   network_entry *entry)
 {
-  connui_utils_notify_notify(
-        inetstate->notifiers, &state, &entry, DBUS_TYPE_INVALID);
+  connui_utils_notify_notify_INT_POINTER(inetstate->notifiers, state, entry);
 }
 
 static gboolean

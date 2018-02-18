@@ -18,13 +18,14 @@ get_cellular_data_info()
 }
 
 static void
-connui_cellular_data_suspended_do_caller_cb(gboolean suspended, guint32 code,
+connui_cellular_data_suspended_do_caller_cb(gboolean suspended,
+                                            guint code,
                                             connui_cellular_info **info)
 {
   g_return_if_fail(info != NULL && *info != NULL);
 
   if ((*info)->list)
-    connui_utils_notify_notify((*info)->list, &suspended, &code, NULL);
+    connui_utils_notify_notify_BOOLEAN_UINT((*info)->list, suspended, code);
 }
 
 static DBusHandlerResult

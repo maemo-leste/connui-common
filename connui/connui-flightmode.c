@@ -48,14 +48,13 @@ static void
 connui_flightmode_do_caller_cb(const char *status,
                                struct GlobalDataStruct **info)
 {
-  dbus_bool_t is_flight_mode;
-
   g_return_if_fail(status != NULL && info != NULL && *info != NULL);
 
-  is_flight_mode = !strcmp(status, MCE_FLIGHT_MODE);
-
   if ((*info)->list)
-    connui_utils_notify_notify((*info)->list, &is_flight_mode, NULL);
+  {
+    connui_utils_notify_notify_BOOLEAN((*info)->list,
+                                       !strcmp(status, MCE_FLIGHT_MODE));
+  }
 }
 
 static DBusHandlerResult

@@ -131,15 +131,121 @@ connui_utils_notify_add(GSList *list, connui_utils_notify callback,
 }
 
 void
+connui_utils_notify_notify_POINTER(GSList *list, gpointer arg1)
+{
+  typedef void (*cb_POINTER)(gpointer, gpointer);
+
+  while (list)
+  {
+    connui_notifier *notifier = (connui_notifier *)list->data;
+
+    if (notifier && notifier->callback)
+      ((cb_POINTER)notifier->callback)(arg1, notifier->user_data);
+
+    list = list->next;
+  }
+}
+
+void
+connui_utils_notify_notify_POINTER_POINTER(GSList *list, gpointer arg1,
+                                           gpointer arg2)
+{
+  typedef void (*cb_POINTER_POINTER)(gpointer, gpointer, gpointer);
+
+  while (list)
+  {
+    connui_notifier *notifier = (connui_notifier *)list->data;
+
+    if (notifier && notifier->callback)
+    {
+      ((cb_POINTER_POINTER)notifier->callback)(arg1, arg2, notifier->user_data);
+    }
+
+    list = list->next;
+  }
+}
+
+void
+connui_utils_notify_notify_POINTER_POINTER_POINTER(GSList *list, gpointer arg1,
+                                                   gpointer arg2, gpointer arg3)
+{
+  typedef void (*cb_POINTER_POINTER_POINTER)(gpointer, gpointer, gpointer, gpointer);
+
+  while (list)
+  {
+    connui_notifier *notifier = (connui_notifier *)list->data;
+
+    if (notifier && notifier->callback)
+    {
+      ((cb_POINTER_POINTER_POINTER)notifier->callback)(arg1, arg2, arg3,
+                                                       notifier->user_data);
+    }
+
+    list = list->next;
+  }
+}
+
+void
+connui_utils_notify_notify_BOOLEAN(GSList *list, int arg1)
+{
+  typedef void (*cb_BOOLEAN)(gboolean, gpointer);
+
+  while (list)
+  {
+    connui_notifier *notifier = (connui_notifier *)list->data;
+
+    if (notifier && notifier->callback)
+      ((cb_BOOLEAN)notifier->callback)(arg1, notifier->user_data);
+
+    list = list->next;
+  }
+}
+
+void
+connui_utils_notify_notify_INT_POINTER(GSList *list, int arg1,
+                                       gpointer arg2)
+{
+  typedef void (*cb_INT_POINTER)(int, gpointer, gpointer);
+
+  while (list)
+  {
+    connui_notifier *notifier = (connui_notifier *)list->data;
+
+    if (notifier && notifier->callback)
+    {
+      ((cb_INT_POINTER)notifier->callback)(arg1, arg2, notifier->user_data);
+    }
+
+    list = list->next;
+  }
+}
+
+void
+connui_utils_notify_notify_BOOLEAN_UINT(GSList *list, gboolean arg1, guint arg2)
+{
+  typedef void (*cb_BOOLEAN_UINT)(gboolean, guint, gpointer);
+
+  while (list)
+  {
+    connui_notifier *notifier = (connui_notifier *)list->data;
+
+    if (notifier && notifier->callback)
+      ((cb_BOOLEAN_UINT)notifier->callback)(arg1, arg2, notifier->user_data);
+
+    list = list->next;
+  }
+}
+
+void
 connui_utils_notify_notify(GSList *list, gpointer first_arg, ...)
 {
   typedef void (*cb_1_arg)(gpointer);
-  typedef void (*cb_2_arg)(gpointer, gpointer);
-  typedef void (*cb_3_arg)(gpointer, gpointer, gpointer);
-  typedef void (*cb_4_arg)(gpointer, gpointer, gpointer, gpointer);
-  typedef void (*cb_5_arg)(gpointer, gpointer, gpointer, gpointer, gpointer);
-  typedef void (*cb_6_arg)(gpointer, gpointer, gpointer, gpointer, gpointer, gpointer);
-  typedef void (*cb_7_arg)(gpointer, gpointer, gpointer, gpointer, gpointer, gpointer, gpointer);
+  typedef void (*cb_2_arg)(int, gpointer);
+  typedef void (*cb_3_arg)(int, int, gpointer);
+  typedef void (*cb_4_arg)(int, int, int, gpointer);
+  typedef void (*cb_5_arg)(int, int, int, int, gpointer);
+  typedef void (*cb_6_arg)(int, int, int, int, int, gpointer);
+  typedef void (*cb_7_arg)(int, int, int, int, int, int, gpointer);
 
   GSList *args = NULL;
   va_list ap;
@@ -167,47 +273,47 @@ connui_utils_notify_notify(GSList *list, gpointer first_arg, ...)
           break;
         case 1:
           ((cb_2_arg)notifier->callback)(
-                args->data,
+                *(int*)args->data,
                 notifier->user_data);
           break;
         case 2:
           ((cb_3_arg)notifier->callback)(
-                args->data,
-                args->next->data,
+                *(int*)args->data,
+                *(int*)args->next->data,
                 notifier->user_data);
           break;
         case 3:
           ((cb_4_arg)notifier->callback)(
-                args->data,
-                args->next->data,
-                args->next->next->data,
+                *(int*)args->data,
+                *(int*)args->next->data,
+                *(int*)args->next->next->data,
                 notifier->user_data);
           break;
         case 4:
           ((cb_5_arg)notifier->callback)(
-                args->data,
-                args->next->data,
-                args->next->next->data,
-                args->next->next->next->data,
+                *(int*)args->data,
+                *(int*)args->next->data,
+                *(int*)args->next->next->data,
+                *(int*)args->next->next->next->data,
                 notifier->user_data);
           break;
         case 5:
           ((cb_6_arg)notifier->callback)(
-                args->data,
-                args->next->data,
-                args->next->next->data,
-                args->next->next->next->data,
-                args->next->next->next->next->data,
+                *(int*)args->data,
+                *(int*)args->next->data,
+                *(int*)args->next->next->data,
+                *(int*)args->next->next->next->data,
+                *(int*)args->next->next->next->next->data,
                 notifier->user_data);
           break;
         case 6:
           ((cb_7_arg)notifier->callback)(
-                args->data,
-                args->next->data,
-                args->next->next->data,
-                args->next->next->next->data,
-                args->next->next->next->next->data,
-                args->next->next->next->next->next->data,
+                *(int*)args->data,
+                *(int*)args->next->data,
+                *(int*)args->next->next->data,
+                *(int*)args->next->next->next->data,
+                *(int*)args->next->next->next->next->data,
+                *(int*)args->next->next->next->next->next->data,
                 notifier->user_data);
           break;
         default:

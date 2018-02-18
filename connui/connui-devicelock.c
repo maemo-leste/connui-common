@@ -12,18 +12,23 @@
 
 struct GlobalDataStruct *devicelock_global_data;
 
-static struct GlobalDataStruct **connui_devicelock_get_global_data(void)
+static struct GlobalDataStruct **
+connui_devicelock_get_global_data(void)
 {
   return &devicelock_global_data;
 }
 
-static void connui_devicelock_do_caller_cb(const char *status, struct GlobalDataStruct **info)
+static void
+connui_devicelock_do_caller_cb(const char *status,
+                               struct GlobalDataStruct **info)
 {
   g_return_if_fail(status != NULL && info != NULL && *info != NULL);
 
-  int first_arg = (strcmp(status, MCE_DEVICE_LOCKED) == 0);
   if ((*info)->list)
-    connui_utils_notify_notify((*info)->list, &first_arg, 0);
+  {
+    connui_utils_notify_notify_BOOLEAN((*info)->list,
+                                       !strcmp(status, MCE_DEVICE_LOCKED));
+  }
 }
 
 static DBusHandlerResult connui_devicelock_devicelock_changed_cb(DBusConnection *connection, DBusMessage *message, struct GlobalDataStruct **user_data)

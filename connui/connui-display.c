@@ -29,7 +29,7 @@ connui_display_event_do_caller_cb(const gchar *status,
 
 
   if ((*info)->list)
-    connui_utils_notify_notify((*info)->list, &status, NULL);
+    connui_utils_notify_notify_POINTER((*info)->list, (gpointer)status);
 }
 
 static DBusHandlerResult
