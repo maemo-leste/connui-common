@@ -492,7 +492,9 @@ DBusMessage *connui_dbus_recv_reply_system_mcall(DBusMessage *message)
 }
 
 static dbus_bool_t
-connui_dbus_mcall_send(DBusConnection *connection, DBusMessage *mcall, int timeout, DBusPendingCallNotifyFunction notify, void *user_data, DBusPendingCall **call)
+connui_dbus_mcall_send(DBusConnection *connection, DBusMessage *mcall,
+                       int timeout, DBusPendingCallNotifyFunction notify,
+                       void *user_data, DBusPendingCall **call)
 {
   DBusPendingCall *pending;
   g_return_val_if_fail(connection != NULL, FALSE);
@@ -503,54 +505,58 @@ connui_dbus_mcall_send(DBusConnection *connection, DBusMessage *mcall, int timeo
     CONNUI_ERR("dbus message %p is not a method call", mcall);
     return FALSE;
   }
+
   if (notify)
   {
     if (!dbus_connection_send_with_reply(connection, mcall, &pending, timeout))
     {
       CONNUI_ERR("connui_dbus_send_message(): send with reply failed");
-      return 0;
+      return FALSE;
     }
-    if (!dbus_pending_call_set_notify(pending, notify, user_data, 0))
+
+    if (!dbus_pending_call_set_notify(pending, notify, user_data, NULL))
     {
       CONNUI_ERR("connui_dbus_send_message(): set notify failed");
       dbus_pending_call_cancel(pending);
       dbus_pending_call_unref(pending);
-      return 0;
+      return FALSE;
     }
   }
   else
   {
     dbus_message_set_no_reply(mcall, TRUE);
-    if (!dbus_connection_send(connection, mcall, 0))
+
+    if (!dbus_connection_send(connection, mcall, NULL))
     {
       CONNUI_ERR("connui_dbus_send_message(): send without reply failed");
-      return 0;
+      return FALSE;
     }
   }
+
   if (call)
-  {
-    return TRUE;
     *call = pending;
-  }
   else if (pending)
-  {
     dbus_pending_call_unref(pending);
-    return TRUE;
-  }
-  else
-  {
-    return TRUE;
-  }
+
+  return TRUE;
 }
 
-dbus_bool_t connui_dbus_send_session_mcall(DBusMessage *mcall, int timeout_milliseconds, DBusPendingCallNotifyFunction notify, void *user_data, DBusPendingCall **call)
+dbus_bool_t
+connui_dbus_send_session_mcall(DBusMessage *mcall, int timeout_milliseconds,
+                               DBusPendingCallNotifyFunction notify,
+                               void *user_data, DBusPendingCall **call)
 {
-  return connui_dbus_mcall_send(connui_dbus_get_session(), mcall, timeout_milliseconds, notify, user_data, call);
+  return connui_dbus_mcall_send(connui_dbus_get_session(), mcall,
+                                timeout_milliseconds, notify, user_data, call);
 }
 
-dbus_bool_t connui_dbus_send_system_mcall(DBusMessage *mcall, int timeout_milliseconds, DBusPendingCallNotifyFunction notify, void *user_data, DBusPendingCall **call)
+dbus_bool_t
+connui_dbus_send_system_mcall(DBusMessage *mcall, int timeout_milliseconds,
+                              DBusPendingCallNotifyFunction notify,
+                              void *user_data, DBusPendingCall **call)
 {
-  return connui_dbus_mcall_send(connui_dbus_get_system(), mcall, timeout_milliseconds, notify, user_data, call);
+  return connui_dbus_mcall_send(connui_dbus_get_system(), mcall,
+                                timeout_milliseconds, notify, user_data, call);
 }
 
 void
