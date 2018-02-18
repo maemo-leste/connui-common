@@ -37,5 +37,8 @@ gint iap_settings_wlan_txpower_get();
 gboolean iap_settings_is_empty(const gchar *iap);
 gboolean iap_settings_iap_exists(const gchar *iap_name, const gchar *iap);
 gboolean iap_settings_set_gconf_value(const gchar *iap, const gchar *key, const GConfValue *value);
-
+gboolean iap_settings_get_iap_list(GtkListStore *dun_iaps, const gchar **which_types,
+                                   int type_column, int id_column, int name_column,
+                                   int pixbuf_column, int service_type_column,
+                                   int service_id_column);
 #endif // IAPSETTINGS_H

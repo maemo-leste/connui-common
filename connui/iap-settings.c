@@ -1,11 +1,14 @@
 #include <gconf/gconf-client.h>
 #include <icd/osso-ic-gconf.h>
+#include <hildon/hildon.h>
 
 #include <string.h>
 #include <libintl.h>
 #include <ctype.h>
 
+#include "connui-dbus.h"
 #include "connui-log.h"
+#include "connui-pixbuf-cache.h"
 #include "iap-common.h"
 #include "iap-settings.h"
 #include "wlan-common.h"
@@ -886,6 +889,206 @@ iap_settings_set_gconf_value(const gchar *iap, const gchar *key,
     g_clear_error(&err);
     return FALSE;
   }
+
+  return TRUE;
+}
+
+static gboolean
+iap_settings_is_gprs_iap_visible(const gchar *iap)
+{
+  static gboolean get_imsi_failed;
+  static char imsi[16];
+  dbus_int32_t unused;
+  const char *s;
+  GConfValue *val;
+  gboolean rv = FALSE;
+
+  if (get_imsi_failed)
+    return FALSE;
+
+  if (!*imsi)
+  {
+    DBusMessage *mcall = connui_dbus_create_method_call("com.nokia.phone.SIM",
+                                                        "/com/nokia/phone/SIM",
+                                                        "Phone.Sim", "get_imsi",
+                                                        DBUS_TYPE_INVALID);
+    DBusMessage *reply = connui_dbus_recv_reply_system_mcall(mcall);
+
+    if (reply && dbus_message_get_args(reply, NULL,
+                                       DBUS_TYPE_STRING, &s,
+                                       DBUS_TYPE_INT32, &unused,
+                                       DBUS_TYPE_INVALID))
+    {
+      strncpy(imsi, s, sizeof(imsi) - 1);
+    }
+    else
+    {
+      CONNUI_ERR("Unable to retrieve SIM imsi, no GPRS IAPs shown");
+      get_imsi_failed = TRUE;
+    }
+
+    if (mcall)
+      dbus_message_unref(mcall);
+
+    if (reply)
+      dbus_message_unref(mcall);
+  }
+
+  if (get_imsi_failed)
+    return FALSE;
+
+  val = iap_settings_get_gconf_value(iap, "sim_imsi");
+
+  if (val && *imsi && val->type == GCONF_VALUE_STRING &&
+      (s = gconf_value_get_string(val)) && !strcmp(imsi, s))
+  {
+    rv = TRUE;
+  }
+
+  if (val)
+    gconf_value_free(val);
+
+  return rv;
+}
+
+gboolean
+iap_settings_get_iap_list(GtkListStore *dun_iaps, const gchar **which_types,
+                          int type_column, int id_column, int name_column,
+                          int pixbuf_column, int service_type_column,
+                          int service_id_column)
+{
+  GConfClient *gconf;
+  GSList *dir;
+  GSList *dirs;
+  ConnuiPixbufCache *cache;
+  GtkTreeIter iter;
+  GError *error = NULL;
+
+  g_return_val_if_fail(GTK_IS_LIST_STORE(dun_iaps), FALSE);
+
+  gconf = gconf_client_get_default();
+  dirs = gconf_client_all_dirs(gconf, ICD_GCONF_PATH, &error);
+
+  if (error)
+  {
+    CONNUI_ERR("cannot get list of IAPs: %s", error->message);
+    g_clear_error(&error);
+    g_object_unref(gconf);
+    return FALSE;
+  }
+
+  cache = connui_pixbuf_cache_new();
+
+  for (dir = dirs; dir; dir = dir->next)
+  {
+    gchar *iap;
+    gchar *type = NULL;
+
+    if (!dir->data)
+    {
+      CONNUI_ERR(
+            "gconf is broken, got NULL data from 'gconf_client_all_dirs()'");
+      continue;
+    }
+
+    iap = gconf_unescape_key(g_strrstr(dir->data, "/") + 1, -1);
+
+    if (iap && iap_settings_is_iap_visible(iap) &&
+        (type = iap_settings_get_iap_type(iap)))
+    {
+      const char **found = NULL;
+
+      if (which_types)
+      {
+        for (found = which_types; *found; found++)
+        {
+          if (!strcmp(type, *found) || !strcmp("*", *found))
+            break;
+        }
+      }
+
+      if ((!which_types || found) &&
+          (strcmp(type, "GPRS") || iap_settings_is_gprs_iap_visible(iap)))
+      {
+        gtk_list_store_append(GTK_LIST_STORE(dun_iaps), &iter);
+
+        if (type_column != -1)
+        {
+          gtk_list_store_set(
+                GTK_LIST_STORE(dun_iaps), &iter, type_column, type, -1);
+        }
+
+        if (id_column != -1)
+        {
+          gtk_list_store_set(
+                GTK_LIST_STORE(dun_iaps), &iter, id_column, iap, -1);
+        }
+
+        if (name_column != -1)
+        {
+          gchar *name = iap_settings_get_name(iap);
+          gtk_list_store_set(
+                GTK_LIST_STORE(dun_iaps), &iter, name_column, name, -1);
+          g_free(name);
+        }
+
+        if (service_type_column != -1)
+        {
+          GConfValue *val = iap_settings_get_gconf_value(iap, "service_type");
+
+          if (val)
+          {
+            const char *s = gconf_value_get_string(val);
+
+            if (s)
+            {
+              gtk_list_store_set(GTK_LIST_STORE(dun_iaps), &iter,
+                                 service_type_column, s, -1);
+              gconf_value_free(val);
+
+              if (service_id_column != -1)
+              {
+                val = iap_settings_get_gconf_value(iap, "service_id");
+
+                if (val)
+                {
+                  if ((s = gconf_value_get_string(val)))
+                  {
+                    gtk_list_store_set(GTK_LIST_STORE(dun_iaps), &iter,
+                                       service_id_column, s, -1);
+                  }
+
+                  gconf_value_free(val);
+                }
+              }
+            }
+            else
+              gconf_value_free(val);
+          }
+        }
+
+        if (pixbuf_column != -1)
+        {
+          gchar *icon = iap_settings_get_iap_icon_name_by_id(iap);
+          gint icon_size = hildon_get_icon_pixel_size(
+                gtk_icon_size_from_name("hildon-small"));
+
+          g_free(icon);
+          gtk_list_store_set(
+                GTK_LIST_STORE(dun_iaps), &iter, pixbuf_column,
+                connui_pixbuf_cache_get(cache, icon, icon_size), -1);
+        }
+      }
+    }
+
+    g_free(type);
+    g_free(iap);
+    g_free(dir->data);
+  }
+
+  connui_pixbuf_cache_destroy(cache);
+  g_slist_free(dirs);
+  g_object_unref(gconf);
 
   return TRUE;
 }
