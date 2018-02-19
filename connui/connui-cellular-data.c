@@ -117,7 +117,7 @@ connui_cellular_data_suspended_available_cb(DBusPendingCall *pending,
 }
 
 void
-connui_cellular_data_close(connui_cellular_data_notify callback)
+connui_cellular_data_suspended_close(connui_cellular_data_notify callback)
 {
   connui_cellular_info **info = get_cellular_data_info();
 
