@@ -10,11 +10,10 @@ DEB_DH_INSTALLDOCS_ARGS=--no-act
 DEB_INSTALL_DOCS_ALL=
 DEB_DH_INSTALL_SOURCEDIR=debian/tmp
 
-DEB_CONFIGURE_EXTRA_FLAGS = --disable-static
+DEB_CONFIGURE_EXTRA_FLAGS = --disable-static --prefix=/usr --sysconfdir=/etc
 
 ifeq (,$(findstring nolauncher,$(DEB_BUILD_OPTIONS)))
 	DEB_CONFIGURE_EXTRA_FLAGS += --enable-maemo-launcher
-	USE_MAEMO_LAUNCHER = true
 endif
 
 CFLAGS += -Werror
@@ -46,12 +45,14 @@ install: build
 
 binary-indep: build install
 
-binary-arch: build instlal
+binary-arch: build install
 	dh_testdir
 	dh_testroot
 	dh_installchangelogs
 	dh_installdocs
 	dh_install --sourcedir=debian/tmp -v
+	#use maemo launcher
+	dh_maemolauncher
 	dh_installman
 	dh_link
 	dh_strip --dbg-package=libconnui
