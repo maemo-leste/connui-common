@@ -496,7 +496,7 @@ connui_dbus_mcall_send(DBusConnection *connection, DBusMessage *mcall,
                        int timeout, DBusPendingCallNotifyFunction notify,
                        void *user_data, DBusPendingCall **call)
 {
-  DBusPendingCall *pending;
+  DBusPendingCall *pending = NULL;
   g_return_val_if_fail(connection != NULL, FALSE);
   g_return_val_if_fail(mcall != NULL, FALSE);
 
