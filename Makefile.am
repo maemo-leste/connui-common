@@ -12,7 +12,14 @@ services_DATA = data/osso-connectivity-ui-conndlgs.service
 system_servicesdir = $(datadir)/dbus-1/system-services/
 system_services_DATA = data/com.nokia.osso_connectivity_ui_conndlgs.service
 
-pkginclude_HEADERS = 
+pkginclude_HEADERS = 	include/connui.h \
+			include/connui-cellular-data.h \
+			include/connui-inetstate.h \
+			include/connui-pixbuf-cache.h \
+			include/connui-pixbuf-anim.h \
+			include/iap-common.h \
+			include/iap-settings.h \
+			include/iap-network.h
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA	= connui.pc
