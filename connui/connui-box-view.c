@@ -267,8 +267,6 @@ connui_box_view_class_init(ConnuiBoxViewClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS(klass);
 
-  connui_box_view_parent_class = g_type_class_peek_parent(klass);
-
   object_class->get_property = connui_box_view_get_property;
   object_class->set_property = connui_box_view_set_property;
   object_class->dispose = connui_box_view_dispose;

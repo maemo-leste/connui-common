@@ -25,7 +25,6 @@ struct _ConnuiScanBoxView
 struct _ConnuiScanBoxViewClass
 {
   ConnuiBoxViewClass parent_class;
-  void (*update_child)(ConnuiScanBoxView *, GtkWidget *, GtkTreeModel *, GtkTreeIter *);
 };
 typedef struct _ConnuiScanBoxViewClass ConnuiScanBoxViewClass;
 
@@ -137,12 +136,10 @@ connui_scan_box_view_class_init(ConnuiScanBoxViewClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS(klass);
 
-  connui_scan_box_view_parent_class = g_type_class_peek_parent(klass);
-
   object_class->dispose = connui_scan_box_view_dispose;
   object_class->finalize = connui_scan_box_view_finalize;
 
-  CONNUI_BOX_VIEW_GET_CLASS(klass)->update_child =
+  CONNUI_BOX_VIEW_CLASS(klass)->update_child =
       connui_scan_box_view_update_child;
 
 #if (!GLIB_CHECK_VERSION (2, 38, 0))

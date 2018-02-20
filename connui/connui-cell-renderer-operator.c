@@ -373,8 +373,6 @@ connui_cell_renderer_operator_class_init(ConnuiCellRendererOperatorClass *klass)
   GtkCellRendererClass *gtk_cell_renderer_class =
       GTK_CELL_RENDERER_CLASS(klass);
 
-  connui_cell_renderer_operator_parent_class = g_type_class_peek_parent(klass);
-
   object_class->get_property = connui_cell_renderer_operator_get_property;
   object_class->set_property = connui_cell_renderer_operator_set_property;
   object_class->dispose = connui_cell_renderer_operator_dispose;
