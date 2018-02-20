@@ -392,9 +392,7 @@ iap_network_entry_connect(guint connection_flags, network_entry **entries)
       while (dbus_message_iter_open_container(&sub, DBUS_TYPE_STRUCT, NULL,
                                               &sub1))
       {
-        entries++;
-
-        if (!iap_network_entry_to_dbus_iter(&sub1, *entries) ||
+        if (!iap_network_entry_to_dbus_iter(&sub1, *entries++) ||
             !dbus_message_iter_close_container(&sub, &sub1) )
         {
           break;
