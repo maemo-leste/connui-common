@@ -45,12 +45,12 @@ iap_network_entry_service_compare(network_entry *network1,
   if ((rv = g_strcmp0(network1->service_id, network2->service_id)))
     return rv;
 
-  if (network1->service_attributes && network2->service_attributes)
+  if (network1->service_attributes | network2->service_attributes)
   {
-    if (network1->service_attributes <= network2->service_attributes)
-      rv = network1->service_attributes < network2->service_attributes;
-    else
+    if (network1->service_attributes > network2->service_attributes)
       rv = -1;
+    else
+      rv = 1;
   }
 
   return rv;
@@ -242,10 +242,16 @@ iap_network_entry_is_saved(network_entry *entry)
 int
 iap_network_entry_compare(network_entry *network1, network_entry *network2)
 {
+  int rv;
+
   g_return_val_if_fail(network1 != NULL && network2 != NULL, 0);
 
-  return iap_network_entry_service_compare(network1, network2) ||
-      iap_network_entry_network_compare(network1, network2);
+  rv = iap_network_entry_service_compare(network1, network2);
+
+  if (!rv)
+    rv = iap_network_entry_network_compare(network1, network2);
+
+  return rv;
 }
 
 int
@@ -267,10 +273,10 @@ iap_network_entry_network_compare(network_entry *network1,
 
   if (capabilities1 | capabilities2)
   {
-    if (capabilities2 <= capabilities1)
-      rv = capabilities2 < capabilities1;
-    else
+    if (capabilities1 > capabilities1)
       rv = -1;
+    else
+      rv = 1;
   }
 
   return rv;
@@ -312,7 +318,6 @@ iap_network_entry_equal(gconstpointer a, gconstpointer b)
   {
     return FALSE;
   }
-
 
   if ((entry1->service_type && entry2->service_type &&
        strcmp(entry1->service_type, entry2->service_type)) ||

@@ -572,9 +572,10 @@ iap_scan_icd_signal(DBusConnection *connection, DBusMessage *message,
         dbus_uint32_t cap = 0;
         nwattr2cap(scan_entry->network.network_attributes, &cap);
 
-        if (cap & WLANCOND_WPS_MASK )
+        if (cap & WLANCOND_WPS_MASK)
         {
           connui_scan_entry *wps_entry;
+          guint nwattrs = scan_entry->network.network_attributes;
 
           wps_entry = g_new0(connui_scan_entry, 1);
           wps_entry->timestamp = timestamp;
@@ -584,7 +585,8 @@ iap_scan_icd_signal(DBusConnection *connection, DBusMessage *message,
           wps_entry->service_priority = service_priority;
           wps_entry->network.service_id = g_strdup(service_id);
           wps_entry->network.network_type = g_strdup(network_type);
-          cap2nwattr(cap, &wps_entry->network.network_attributes);
+          cap2nwattr(cap & ~WLANCOND_WPS_MASK, &nwattrs);
+          wps_entry->network.network_attributes = nwattrs;
           wps_entry->network_name = g_strdup(network_name);
           wps_entry->network_priority = network_priority;
           wps_entry->signal_strength = signal_strength;
@@ -1159,8 +1161,8 @@ iap_scan_add_scan_entry(connui_scan_entry *scan_entry, gboolean unk)
   GSList *found;
   connui_wlan_info **info;
   GConfValue *val;
-  GSList *related; // r0
-  gpointer scan_results; // [sp+44h] [bp-28h] MAPDST
+  GSList *related;
+  gpointer scan_results;
 
   info = get_wlan_info();
 
@@ -1402,7 +1404,7 @@ iap_scan_default_sort_func(GtkTreeModel *model, GtkTreeIter *iter1,
         if (entry1->service_priority > entry2->service_priority)
           return -1;
 
-        if ( entry1->service_priority < entry2->service_priority)
+        if (entry1->service_priority < entry2->service_priority)
           return 1;
       }
     }
@@ -1416,12 +1418,16 @@ iap_scan_default_sort_func(GtkTreeModel *model, GtkTreeIter *iter1,
   gtk_tree_model_get(model, iter2,
                      IAP_SCAN_LIST_SERVICE_TEXT, &service_text2,
                      -1);
-  if (service_text1 && !service_text2)
-    rv = -1;
-  else if (!service_text1 && service_text2)
-    rv = 1;
+
+  rv = -1;
+
+  if (service_text1)
+  {
+    if (service_text2)
+      rv = strcoll(service_text1, service_text2);
+  }
   else
-    rv = strcoll(service_text1, service_text2);
+    rv = 1;
 
   g_free(service_text1);
   g_free(service_text2);
