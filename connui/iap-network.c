@@ -45,13 +45,10 @@ iap_network_entry_service_compare(network_entry *network1,
   if ((rv = g_strcmp0(network1->service_id, network2->service_id)))
     return rv;
 
-  if (network1->service_attributes | network2->service_attributes)
-  {
-    if (network1->service_attributes > network2->service_attributes)
-      rv = -1;
-    else
-      rv = 1;
-  }
+  if (network1->service_attributes > network2->service_attributes)
+    rv = -1;
+  else if (network1->service_attributes < network2->service_attributes)
+    rv = 1;
 
   return rv;
 }
@@ -259,8 +256,8 @@ iap_network_entry_network_compare(network_entry *network1,
                                   network_entry *network2)
 {
   int rv;
-  unsigned int capabilities1;
-  unsigned int capabilities2;
+  dbus_uint32_t nwattrs1 = network1->network_attributes & ICD_NW_ATTR_LOCALMASK;
+  dbus_uint32_t nwattrs2 = network2->network_attributes & ICD_NW_ATTR_LOCALMASK;
 
   if ((rv = g_strcmp0(network1->network_type, network2->network_type)))
     return rv;
@@ -268,16 +265,10 @@ iap_network_entry_network_compare(network_entry *network1,
   if ((rv = g_strcmp0(network1->network_id, network2->network_id)))
     return rv;
 
-  capabilities1 = network2->network_attributes & ICD_NW_ATTR_LOCALMASK;
-  capabilities2 = network1->network_attributes & ICD_NW_ATTR_LOCALMASK;
-
-  if (capabilities1 | capabilities2)
-  {
-    if (capabilities1 > capabilities1)
-      rv = -1;
-    else
-      rv = 1;
-  }
+  if (nwattrs1 > nwattrs2)
+    rv = -1;
+  else if (nwattrs1 < nwattrs2)
+    rv = 1;
 
   return rv;
 }

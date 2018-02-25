@@ -85,7 +85,10 @@ iap_scan_list_store_set_valist(connui_wlan_info **info,
   va_start(ap, scan_entry);
 
   if ((*info)->model)
-    gtk_list_store_set_valist((*info)->model, &scan_entry->iterator, ap);
+  {
+    gtk_list_store_set_valist(GTK_LIST_STORE((*info)->model),
+                                             &scan_entry->iterator, ap);
+  }
 
   va_end(ap);
 }
@@ -95,21 +98,20 @@ iap_scan_is_hidden_wlan(network_entry *network)
 {
   g_return_val_if_fail(network != NULL && network->network_type != NULL, FALSE);
 
-
   if (network->network_id && *network->network_id)
     return FALSE;
 
   return !strncmp(network->network_type, "WLAN_INFRA", 10);
 }
 
-static gboolean
+static int
 iap_scan_entry_network_compare(connui_scan_entry *entry1,
                                connui_scan_entry *entry2)
 {
   if (iap_scan_is_hidden_wlan(&entry1->network) &&
       iap_scan_is_hidden_wlan(&entry2->network))
   {
-    return FALSE;
+    return 0;
   }
 
   return iap_network_entry_compare(&entry1->network, &entry2->network);
@@ -153,7 +155,7 @@ iap_scan_icd_scan_stop(connui_wlan_info **info)
                                          DBUS_TYPE_INVALID);
   if (mcall)
   {
-    if (connui_dbus_send_system_mcall(mcall, -1, 0, 0, 0))
+    if (connui_dbus_send_system_mcall(mcall, -1, NULL, NULL, NULL))
       rv = TRUE;
     else
       CONNUI_ERR("could not send message");
@@ -226,7 +228,7 @@ iap_scan_update_network_in_list(connui_wlan_info **info,
 }
 
 GtkWidget *
-iap_scan_tree_create(GtkTreeIterCompareFunc sort_func, gpointer*user_data)
+iap_scan_tree_create(GtkTreeIterCompareFunc sort_func, gpointer user_data)
 {
   GtkListStore *scan_store;
   GtkWidget *tree_view;
@@ -324,29 +326,20 @@ iap_scan_entry_compare(connui_scan_entry *entry1, connui_scan_entry *entry2)
   if (entry1 == entry2)
     return 0;
 
-  if (entry1->service_priority != entry2->service_priority)
-  {
-    if (entry1->service_priority > entry2->service_priority)
-      return -1;
-    else
-      return 1;
-  }
+  if (entry1->service_priority > entry2->service_priority)
+    return -1;
+  else if (entry1->service_priority < entry2->service_priority)
+    return 1;
 
-  if (entry1->network_priority != entry2->network_priority)
-  {
-    if (entry1->network_priority > entry2->network_priority)
-      return -1;
-    else
-      return 1;
-  }
+  if (entry1->network_priority > entry2->network_priority)
+    return -1;
+  else if (entry1->network_priority < entry2->network_priority)
+    return 1;
 
-  if (entry1->signal_strength != entry2->signal_strength)
-  {
-    if (entry1->signal_strength > entry2->signal_strength)
-      return -1;
-    else
-      return 1;
-  }
+  if (entry1->signal_strength > entry2->signal_strength)
+    return -1;
+  else if (entry1->signal_strength < entry2->signal_strength)
+    return 1;
 
   return 0;
 }
@@ -377,7 +370,7 @@ iap_scan_add_related_result(connui_wlan_info **info,
 
     entry = (connui_scan_entry *)l->data;
 
-    if ( l->data != new_scan_entry )
+    if (entry != new_scan_entry)
     {
       entry->list = g_slist_insert_sorted(entry->list, new_scan_entry,
                                           (GCompareFunc)iap_scan_entry_compare);
@@ -549,7 +542,7 @@ iap_scan_icd_signal(DBusConnection *connection, DBusMessage *message,
       scan_entry->service_name = g_strdup(service_name);
       scan_entry->service_priority = service_priority;
       scan_entry->network.service_id = g_strdup(service_id);
-      scan_entry->network.network_type = g_strdup((const gchar *)network_type);
+      scan_entry->network.network_type = g_strdup(network_type);
       scan_entry->network.network_attributes = network_attributes;
       scan_entry->network_name = g_strdup(network_name);
       scan_entry->network_priority = network_priority;
@@ -575,7 +568,7 @@ iap_scan_icd_signal(DBusConnection *connection, DBusMessage *message,
         if (cap & WLANCOND_WPS_MASK)
         {
           connui_scan_entry *wps_entry;
-          guint nwattrs = scan_entry->network.network_attributes;
+          guint nwattrs = 0;
 
           wps_entry = g_new0(connui_scan_entry, 1);
           wps_entry->timestamp = timestamp;
@@ -645,7 +638,7 @@ finish:
       else if (status == ICD_SCAN_COMPLETE)
       {
         if (!g_slist_find_custom((*info)->network_types, network_type,
-                                 (GCompareFunc)&strcmp))
+                                 (GCompareFunc)strcmp))
         {
           (*info)->network_types = g_slist_prepend((*info)->network_types,
                                                    g_strdup(network_type));
@@ -728,6 +721,7 @@ iap_scan_remove_network_from_list(connui_wlan_info **info,
       do
       {
         entry = (connui_scan_entry *)l->data;
+
         entry->list = g_slist_remove(entry->list, scan_entry);
         l = l->next;
       }
@@ -783,23 +777,15 @@ iap_scan_close()
     (*info)->network_types = NULL;
   }
 
-  scan_list = (*info)->scan_list;
-
-  if (scan_list)
+  for (scan_list = (*info)->scan_list; scan_list; scan_list = scan_list->next)
   {
-    do
+    connui_scan_entry *entry = (connui_scan_entry *)scan_list->data;
+
+    if (entry)
     {
-      connui_scan_entry *entry = (connui_scan_entry *)scan_list->data;
-
-      if (entry)
-      {
-        iap_scan_remove_network_from_list(info, entry);
-        iap_scan_free_scan_entry(entry);
-      }
-
-      scan_list = scan_list->next;
+      iap_scan_remove_network_from_list(info, entry);
+      iap_scan_free_scan_entry(entry);
     }
-    while (scan_list);
   }
 
   g_slist_free((*info)->scan_list);
@@ -1305,9 +1291,9 @@ iap_scan_start(int flags,
         user_data);
 }
 
-int
+gint
 iap_scan_default_sort_func(GtkTreeModel *model, GtkTreeIter *iter1,
-                           GtkTreeIter *iter2, connui_scan_entry *entry)
+                           GtkTreeIter *iter2, network_entry *last_used_network)
 {
   int rv;
   gchar *service_text2 = NULL;
@@ -1371,15 +1357,15 @@ iap_scan_default_sort_func(GtkTreeModel *model, GtkTreeIter *iter1,
           return -1;
       }
 
-      if (entry && entry->network.network_type)
+      if (last_used_network && last_used_network->network_type)
       {
-        if (!iap_network_entry_network_compare(&entry->network,
+        if (!iap_network_entry_network_compare(last_used_network,
                                                &entry1->network))
         {
           return -1;
         }
 
-        if (!iap_network_entry_network_compare(&entry->network,
+        if (!iap_network_entry_network_compare(last_used_network,
                                                &entry2->network))
         {
           return 1;

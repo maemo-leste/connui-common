@@ -10,7 +10,7 @@ typedef struct _connui_wlan_info connui_wlan_info;
 typedef void (*iap_scan_cancel_fn)(gpointer user_data);
 
 GtkListStore *iap_scan_store_create(GtkTreeIterCompareFunc sort_func, gpointer user_data);
-GtkWidget *iap_scan_tree_create(GtkTreeIterCompareFunc sort_func, gpointer*user_data);
+GtkWidget *iap_scan_tree_create(GtkTreeIterCompareFunc sort_func, gpointer user_data);
 GtkWidget *iap_scan_view_create(GtkWidget *scan_tree_view);
 void iap_scan_free_scan_entry(connui_scan_entry *entry);
 
@@ -21,5 +21,5 @@ void iap_scan_stop();
 
 gboolean iap_scan_add_scan_entry(connui_scan_entry *scan_entry, gboolean unk);
 
-int iap_scan_default_sort_func(GtkTreeModel *model, GtkTreeIter *iter1,GtkTreeIter *iter2, connui_scan_entry *entry);
+gint iap_scan_default_sort_func(GtkTreeModel *model, GtkTreeIter *iter1, GtkTreeIter *iter2, network_entry *last_used);
 #endif // IAPSCAN_H
