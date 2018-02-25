@@ -132,8 +132,10 @@ iap_scan_store_create(GtkTreeIterCompareFunc sort_func, gpointer user_data)
   {
     gtk_tree_sortable_set_default_sort_func(GTK_TREE_SORTABLE(list_store),
                                             sort_func, user_data, NULL);
-    gtk_tree_sortable_set_sort_column_id(GTK_TREE_SORTABLE(list_store), -1,
-                                         GTK_SORT_ASCENDING);
+    gtk_tree_sortable_set_sort_column_id(
+          GTK_TREE_SORTABLE(list_store),
+          GTK_TREE_SORTABLE_DEFAULT_SORT_COLUMN_ID,
+          GTK_SORT_ASCENDING);
   }
 
   return list_store;
