@@ -9,6 +9,7 @@
 #include "connui-pixbuf-cache.h"
 
 #include "iap-common.h"
+#include "iap-scan.h"
 
 struct _ConnuiScanBoxViewPrivate
 {
@@ -59,42 +60,48 @@ static void
 connui_scan_box_view_update_child(ConnuiBoxView *view, GtkWidget *hbutton,
                                   GtkTreeModel *model, GtkTreeIter *iter)
 {
-  gchar *title = NULL;
-  gchar *icon1 = NULL;
-  gchar *icon2 = NULL;
-  gchar *icon3 = NULL;
-  GdkPixbuf *icon1buf;
-  GdkPixbuf *icon2buf;
-  GdkPixbuf *icon3buf;
+  gchar *service_text = NULL;
+  gchar *icon = NULL;
+  gchar *saved_icon = NULL;
+  gchar *security_icon = NULL;
+  GdkPixbuf *icon_pixbuf;
+  GdkPixbuf *saved_icon_pixbuf;
+  GdkPixbuf *sec_icon_pixbuf;
   network_entry *entry = NULL;
   gboolean can_disconnect = FALSE;
   ConnuiScanBoxViewPrivate *priv = CONNUI_SCAN_BOX_VIEW(view)->priv;
 
-  gtk_tree_model_get(model, iter, 0, &icon1, 4, &title, 7, &icon2, 9,
-                     &icon3, 10, &entry, 11, &can_disconnect, -1);
+  gtk_tree_model_get(model, iter,
+                     IAP_SCAN_LIST_IAP_ICON_NAME, &icon,
+                     IAP_SCAN_LIST_SERVICE_TEXT, &service_text,
+                     IAP_SCAN_LIST_SAVED_ICON, &saved_icon,
+                     IAP_SCAN_LIST_SECURITY_ICON, &security_icon,
+                     IAP_SCAN_LIST_SCAN_ENTRY, &entry,
+                     IAP_SCAN_LIST_CAN_DISCONNECT, &can_disconnect,
+                     -1);
 
-  if (!title)
+  if (!service_text)
   {
-    g_free(icon1);
-    g_free(icon2);
-    g_free(icon3);
+    g_free(icon);
+    g_free(saved_icon);
+    g_free(security_icon);
     return;
   }
 
-  icon1buf = connui_pixbuf_cache_get(priv->cache, icon1, 48);
-  icon2buf = connui_pixbuf_cache_get(priv->cache, icon2, 48);
-  icon3buf = connui_pixbuf_cache_get(priv->cache, icon3, 48);
+  icon_pixbuf = connui_pixbuf_cache_get(priv->cache, icon, 48);
+  saved_icon_pixbuf = connui_pixbuf_cache_get(priv->cache, saved_icon, 48);
+  sec_icon_pixbuf = connui_pixbuf_cache_get(priv->cache, security_icon, 48);
 
   if (can_disconnect)
   {
-    gchar* tmp = title;
+    gchar* tmp = service_text;
     const gchar *s = dgettext("osso-connectivity-ui", "conn_fi_disconnect_iap");
 
-    title = g_strdup_printf(s, tmp);
+    service_text = g_strdup_printf(s, tmp);
     g_free(tmp);
   }
 
-  hildon_button_set_title(HILDON_BUTTON(hbutton), title);
+  hildon_button_set_title(HILDON_BUTTON(hbutton), service_text);
 
   if (entry && entry->network_type &&
       !strncmp(entry->network_type, "WLAN_", 5) &&
@@ -108,13 +115,13 @@ connui_scan_box_view_update_child(ConnuiBoxView *view, GtkWidget *hbutton,
   hildon_button_set_alignment(HILDON_BUTTON(hbutton), 0.0, 0.5, 1.0, 0.0);
   hildon_button_set_title_alignment(HILDON_BUTTON(hbutton), 0.0, 0.5);
   hildon_button_set_value_alignment(HILDON_BUTTON(hbutton), 0.0, 0.5);
-  add_icon_to_button(hbutton, icon1buf);
-  add_icon_to_button(hbutton, icon2buf);
-  add_icon_to_button(hbutton, icon3buf);
-  g_free(title);
-  g_free(icon1);
-  g_free(icon2);
-  g_free(icon3);
+  add_icon_to_button(hbutton, icon_pixbuf);
+  add_icon_to_button(hbutton, saved_icon_pixbuf);
+  add_icon_to_button(hbutton, sec_icon_pixbuf);
+  g_free(service_text);
+  g_free(icon);
+  g_free(saved_icon);
+  g_free(security_icon);
 }
 
 static void
