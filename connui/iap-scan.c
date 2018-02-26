@@ -17,23 +17,6 @@
 
 #include "iap-scan.h"
 
-enum
-{
-  IAP_SCAN_LIST_IAP_ICON_NAME = 0,
-  IAP_SCAN_LIST_SSID = 1,
-  IAP_SCAN_LIST_SERVICE_TYPE = 2,
-  IAP_SCAN_LIST_SERVICE_ID = 3,
-  IAP_SCAN_LIST_SERVICE_TEXT = 4,
-  IAP_SCAN_LIST_NETWORK_TYPE = 5,
-  IAP_SCAN_LIST_IS_SAVED = 6,
-  IAP_SCAN_LIST_SAVED_ICON = 7,
-  IAP_SCAN_LIST_STRENGHT_ICON = 8,
-  IAP_SCAN_LIST_SECURITY_ICON = 9,
-  IAP_SCAN_LIST_SCAN_ENTRY = 10,
-  IAP_SCAN_LIST_UNKNOWN_BOOL = 11
-};
-
-
 struct _connui_wlan_info
 {
   int flags;
@@ -633,7 +616,7 @@ finish:
       {
         scan_entry->signal_strength = 0;
         iap_scan_list_store_set_valist(info, scan_entry,
-                                       IAP_SCAN_LIST_UNKNOWN_BOOL, 0,
+                                       IAP_SCAN_LIST_CAN_DISCONNECT, 0,
                                        -1);
         iap_scan_update_network_in_list(info, scan_entry);
       }
@@ -710,7 +693,6 @@ iap_scan_remove_network_from_list(connui_wlan_info **info,
   connui_scan_entry *entry;
 
   g_return_if_fail(*info != NULL && scan_entry != NULL);
-
 
   if (scan_entry->list)
   {
@@ -1144,7 +1126,7 @@ iap_scan_add_network_to_list(connui_wlan_info **info,
 }
 
 gboolean
-iap_scan_add_scan_entry(connui_scan_entry *scan_entry, gboolean unk)
+iap_scan_add_scan_entry(connui_scan_entry *scan_entry, gboolean can_disconnect)
 {
   GSList *found;
   connui_wlan_info **info;
@@ -1263,10 +1245,10 @@ LABEL_23:
 
 LABEL_5:
 
-  if (unk)
+  if (can_disconnect)
   {
     iap_scan_list_store_set_valist(info, scan_entry,
-                                   IAP_SCAN_LIST_UNKNOWN_BOOL, 1, -1);
+                                   IAP_SCAN_LIST_CAN_DISCONNECT, TRUE, -1);
   }
 
   return TRUE;
@@ -1302,16 +1284,18 @@ iap_scan_default_sort_func(GtkTreeModel *model, GtkTreeIter *iter1,
   gchar *service_text1 = NULL;
   connui_scan_entry *entry2 = NULL;
   connui_scan_entry *entry1 = NULL;
-  gboolean unk2 = FALSE;
-  gboolean unk1 = FALSE;
+  gboolean can_disconnect2 = FALSE;
+  gboolean can_disconnect1 = FALSE;
 
-  gtk_tree_model_get(model, iter1, IAP_SCAN_LIST_UNKNOWN_BOOL, &unk1, -1);
-  gtk_tree_model_get(model, iter2, IAP_SCAN_LIST_UNKNOWN_BOOL, &unk2, -1);
+  gtk_tree_model_get(model, iter1,
+                     IAP_SCAN_LIST_CAN_DISCONNECT, &can_disconnect1, -1);
+  gtk_tree_model_get(model, iter2,
+                     IAP_SCAN_LIST_CAN_DISCONNECT, &can_disconnect2, -1);
 
-  if (unk1 && !unk2)
+  if (can_disconnect1 && !can_disconnect2)
     return -1;
 
-  if (!unk1 && unk2)
+  if (!can_disconnect1 && can_disconnect2)
     return 1;
 
   gtk_tree_model_get(model, iter1, IAP_SCAN_LIST_SCAN_ENTRY, &entry1, -1);
