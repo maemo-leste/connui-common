@@ -142,7 +142,7 @@ connui_box_view_row_inserted(GtkTreeModel *model, GtkTreePath *path,
   gtk_box_pack_start(GTK_BOX(view), button, 0, 0, 0);
   gtk_box_reorder_child(GTK_BOX(view), button, idx);
   gtk_widget_show_all(button);
-  g_array_insert_vals(priv->children, idx, &button, 1u);
+  g_array_insert_vals(priv->children, idx, &button, 1);
   connui_box_view_update_child(view, button, model, iter);
 }
 
@@ -152,26 +152,26 @@ connui_box_view_rows_reordered(GtkTreeModel *model, GtkTreePath *path,
                                gpointer user_data)
 {
   ConnuiBoxView *view = CONNUI_BOX_VIEW(user_data);
-  ConnuiBoxViewPrivate* priv = view->priv;
+  ConnuiBoxViewPrivate *priv = view->priv;
   gint *order = (gint *)new_order;
   gint n_children = gtk_tree_model_iter_n_children(model, iter);
+  GArray *children;
+  gint idx = 0;
 
-  if (iter && n_children > 1)
+  if (iter || n_children <= 1)
+    return;
+
+  children = g_array_new(FALSE, TRUE, sizeof(GtkWidget *));
+
+  for (idx = 0; idx < n_children; idx++)
   {
-    GArray *children = g_array_new(FALSE, TRUE, sizeof(GtkWidget *));
-    int idx;
-
-    for (idx = 0; idx < n_children; idx++)
-    {
-      GtkWidget *child = g_array_index(priv->children, GtkWidget *, order[idx]);
-
-      gtk_box_reorder_child(GTK_BOX(view), child, idx + 1);
-      g_array_insert_vals(children, idx, &child, 1);
-    }
-
-    g_array_free(priv->children, TRUE);
-    priv->children = children;
+    GtkWidget *child = g_array_index(priv->children, GtkWidget *, order[idx]);
+    gtk_box_reorder_child(GTK_BOX(view), child, idx);
+    g_array_insert_vals(children, idx, &child, 1);
   }
+
+  g_array_free(priv->children, TRUE);
+  priv->children = children;
 }
 
 static void
@@ -300,7 +300,7 @@ connui_box_view_init(ConnuiBoxView *view)
 
   view->priv = priv;
   priv->model = NULL;
-  priv->children = g_array_new(FALSE, TRUE, sizeof(GtkWidget*));
+  priv->children = g_array_new(FALSE, TRUE, sizeof(GtkWidget *));
 }
 
 GtkWidget *
