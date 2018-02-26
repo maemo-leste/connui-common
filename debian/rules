@@ -5,7 +5,6 @@
 include /usr/share/cdbs/1/rules/debhelper.mk
 include /usr/share/cdbs/1/class/autotools.mk
 
-DEB_DH_INSTALLCHANGELOGS_ARGS=--no-act
 DEB_DH_INSTALLDOCS_ARGS=--no-act
 DEB_INSTALL_DOCS_ALL=
 DEB_DH_INSTALL_SOURCEDIR=debian/tmp
@@ -20,14 +19,11 @@ CFLAGS += -Werror
 
 export CFLAGS
 
-config.status:
+build:
 	dh_testdir
 	./autogen.sh
 	CFLAGS="$(CFLAGS)" ./configure \
 		$(DEB_CONFIGURE_EXTRA_FLAGS)
-
-build: config.status
-	dh_testdir
 	$(MAKE)
 
 #clean:
