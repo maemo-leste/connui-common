@@ -231,42 +231,23 @@ set_service_type_and_id(ConnuiCellRendererOperator *self,
     return;
   }
 
-  if (!self->service_type || strcmp(self->service_type, service_type) ||
-      !self->service_id || strcmp(self->service_id, service_id))
+  if (!self->service_type || !service_type ||
+      strcmp(self->service_type, service_type))
   {
-    if (strcmp(self->service_type, service_type))
-    {
-      g_free(self->service_type);
-      self->service_type = g_strdup(service_type);
-    }
+    g_free(self->service_type);
+    self->service_type = g_strdup(service_type);
+  }
 
-    if (strcmp(self->service_id, service_id))
-    {
-      g_free(self->service_id);
-      self->service_id = g_strdup(service_id);
-    }
+  if (!self->service_id || !service_id || strcmp(self->service_id, service_id))
+  {
+    g_free(self->service_id);
+    self->service_id = g_strdup(service_id);
+  }
 
-    /* WTF is going on here ?!? */
-    if (self->service_type)
-    {
-      if (!self->service_id)
-        return;
-
-      if (*self->service_type)
-      {
-        if (*self->service_id)
-          set_service_properties(self);
-        return;
-      }
-
-      if (*self->service_id)
-        return;
-    }
-    else if (self->service_id)
-    {
-      return;
-    }
-
+  if ((self->service_type && *self->service_type &&
+       self->service_id && *self->service_id) ||
+      (!self->service_type && !self->service_id))
+  {
     set_service_properties(self);
   }
 }
