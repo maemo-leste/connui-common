@@ -157,6 +157,36 @@ iap_scan_icd_scan_stop(connui_wlan_info **info)
   return rv;
 }
 
+#define dump_scan_entry(scan_entry) \
+{ \
+  g_warning("%s(%d) scan_entry " \
+            "network.network_id %s\n" \
+            "network.service_type %s\n" \
+            "network.service_attributes %x\n"  \
+            "network.service_id %s\n"  \
+            "network.network_type %s\n"  \
+            "network.network_attributes %x\n"  \
+            "service_name %s\n"  \
+            "service_priority %d\n"  \
+            "network_name %s\n"  \
+            "network_priority %d\n" \
+            "signal_strength %d\n" \
+            "station_id %s",  \
+            __FUNCTION__, __LINE__,  \
+            scan_entry->network.network_id, \
+            scan_entry->network.service_type, \
+            scan_entry->network.service_attributes, \
+            scan_entry->network.service_id, \
+            scan_entry->network.network_type, \
+            scan_entry->network.network_attributes, \
+            scan_entry->service_name, \
+            scan_entry->service_priority, \
+            scan_entry->network_name, \
+            scan_entry->network_priority, \
+            scan_entry->signal_strength, \
+            scan_entry->station_id); \
+}
+
 static void
 iap_scan_update_network_in_list(connui_wlan_info **info,
                                 connui_scan_entry *scan_entry)
@@ -427,6 +457,24 @@ iap_scan_select_first_item(connui_wlan_info **info)
 
     (*info)->network_types = NULL;
   }
+}
+
+#define dump_network_entry(entry) \
+{ \
+g_warning("%s(%d) scan_entry " \
+          "network.network_id %s\n" \
+          "network.service_type %s\n" \
+          "network.service_attributes %x\n"  \
+          "network.service_id %s\n"  \
+          "network.network_type %s\n"  \
+          "network.network_attributes %x\n",  \
+          __FUNCTION__, __LINE__,  \
+          (entry)->network_id, \
+          (entry)->service_type, \
+          (entry)->service_attributes, \
+          (entry)->service_id, \
+          (entry)->network_type, \
+          (entry)->network_attributes); \
 }
 
 static DBusHandlerResult
