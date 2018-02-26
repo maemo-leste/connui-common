@@ -1391,14 +1391,16 @@ iap_scan_default_sort_func(GtkTreeModel *model, GtkTreeIter *iter1,
                      IAP_SCAN_LIST_SERVICE_TEXT, &service_text2,
                      -1);
 
-  rv = -1;
+  rv = 0;
 
   if (service_text1)
   {
     if (service_text2)
       rv = strcoll(service_text1, service_text2);
+    else
+      rv = -1;
   }
-  else
+  else if (service_text2)
     rv = 1;
 
   g_free(service_text1);
