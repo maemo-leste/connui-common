@@ -518,7 +518,7 @@ iap_scan_icd_signal(DBusConnection *connection, DBusMessage *message,
       (*info)->scan_in_progress = TRUE;
     }
 
-    if ((status == ICD_SCAN_NEW || status == ICD_SCAN_UPDATE) && !scan_entry)
+    if ((status == ICD_SCAN_NEW) && !scan_entry)
     {
       scan_entry = g_new0(connui_scan_entry, 1);
       scan_entry->timestamp = timestamp;
@@ -579,7 +579,7 @@ iap_scan_icd_signal(DBusConnection *connection, DBusMessage *message,
       }
     }
 
-    if (scan_entry && (status <= (unsigned int)ICD_SCAN_UPDATE))
+    if (scan_entry && (status == ICD_SCAN_NEW || status == ICD_SCAN_UPDATE))
     {
       if (!scan_entry->service_name ||
           strcmp(service_name, scan_entry->service_name))
