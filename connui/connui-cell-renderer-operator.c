@@ -277,7 +277,7 @@ connui_cell_renderer_operator_init(ConnuiCellRendererOperator *self)
   self->pixbuf = gtk_cell_renderer_pixbuf_new();
   g_object_ref_sink(self->pixbuf);
   g_object_set(G_OBJECT(self), "ellipsize", 3, NULL);
-  g_object_set(G_OBJECT(self), "xalign", 0, NULL);
+  g_object_set(G_OBJECT(self), "xalign", (gfloat)0.0, NULL);
   self->service_text = NULL;
   self->service_type = NULL;
   self->service_id = NULL;
