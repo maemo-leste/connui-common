@@ -17,6 +17,20 @@ enum
   IAP_SCAN_LIST_CAN_DISCONNECT = 11
 };
 
+struct _connui_scan_entry
+{
+  network_entry network;
+  guint timestamp;
+  gchar *service_name;
+  gint service_priority;
+  gchar *network_name;
+  gint network_priority;
+  gint signal_strength;
+  gchar *station_id;
+  GtkTreeIter iterator;
+  GSList *list;
+};
+
 typedef struct _connui_scan_entry connui_scan_entry;
 
 GtkListStore *iap_scan_store_create(GtkTreeIterCompareFunc sort_func, gpointer user_data);
@@ -24,6 +38,9 @@ GtkListStore *iap_scan_store_create(GtkTreeIterCompareFunc sort_func, gpointer u
 typedef struct _connui_wlan_info connui_wlan_info;
 
 typedef void (*iap_scan_cancel_fn)(gpointer user_data);
+typedef void (*iap_scan_started_fn)(gpointer user_data);
+typedef gboolean (*iap_scan_network_added_fn)(connui_scan_entry *scan_entry, gpointer user_data);
+typedef void (*iap_scan_selection_changed_fn)(GtkTreeSelection *selection, gpointer user_data);
 
 GtkListStore *iap_scan_store_create(GtkTreeIterCompareFunc sort_func, gpointer user_data);
 GtkWidget *iap_scan_tree_create(GtkTreeIterCompareFunc sort_func, gpointer user_data);
@@ -38,4 +55,12 @@ void iap_scan_stop();
 gboolean iap_scan_add_scan_entry(connui_scan_entry *scan_entry, gboolean can_disconnect);
 
 gint iap_scan_default_sort_func(GtkTreeModel *model, GtkTreeIter *iter1, GtkTreeIter *iter2, network_entry *last_used);
+
+gboolean iap_scan_start(int flags, iap_scan_started_fn scan_started_cb,
+                        iap_scan_cancel_fn scan_stopped_cb,
+                        iap_scan_network_added_fn scan_network_added_cb,
+                        GtkWidget *widget, void *unk,
+                        iap_scan_selection_changed_fn selection_changed_cb,
+                        gpointer user_data);
+
 #endif // IAPSCAN_H

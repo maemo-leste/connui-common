@@ -43,20 +43,6 @@ struct _connui_wlan_info
   DBusPendingCall *pending;
 };
 
-struct _connui_scan_entry
-{
-  network_entry network;
-  guint timestamp;
-  gchar *service_name;
-  gint service_priority;
-  gchar *network_name;
-  gint network_priority;
-  gint signal_strength;
-  gchar *station_id;
-  GtkTreeIter iterator;
-  GSList *list;
-};
-
 static connui_wlan_info *wlan_info = NULL;
 
 static void
@@ -857,7 +843,7 @@ iap_scan_scroll_value_changed_cb(GtkAdjustment *adjustment,
   }
 }
 
-void
+gboolean
 iap_scan_start_for_network_types(gchar **network_types, int flags,
                                  void (*scan_started_cb)(gpointer),
                                  iap_scan_cancel_fn scan_stopped_cb,
@@ -894,7 +880,7 @@ iap_scan_start_for_network_types(gchar **network_types, int flags,
     (*info)->scan_in_progress = FALSE;
 
     if ((*info)->active_scan_count > 0)
-      return;
+      return TRUE;
   }
   else
   {
@@ -948,11 +934,11 @@ iap_scan_start_for_network_types(gchar **network_types, int flags,
           "/com/nokia/icd2", (DBusObjectPathMessageFunction)iap_scan_icd_signal,
           info))
     {
-      return;
+      return FALSE;
     }
   }
 
-  iap_scan_icd_scan_start(info, (gchar **)network_types);
+  return iap_scan_icd_scan_start(info, (gchar **)network_types);
 }
 
 static void
@@ -1302,25 +1288,18 @@ LABEL_5:
   return TRUE;
 }
 
-void
-iap_scan_start(int flags,
-               void (*scan_started_cb)(gpointer),
+gboolean
+iap_scan_start(int flags, iap_scan_started_fn scan_started_cb,
                iap_scan_cancel_fn scan_stopped_cb,
-               gboolean (*scan_network_added_cb)(connui_scan_entry *, gpointer),
+               iap_scan_network_added_fn scan_network_added_cb,
                GtkWidget *widget, void *unk,
-               void (*selection_changed_cb)(GtkTreeSelection *, gpointer),
+               iap_scan_selection_changed_fn selection_changed_cb,
                gpointer user_data)
 {
-  iap_scan_start_for_network_types(
-        NULL,
-        flags,
-        scan_started_cb,
-        scan_stopped_cb,
-        scan_network_added_cb,
-        widget,
-        unk,
-        selection_changed_cb,
-        user_data);
+  return iap_scan_start_for_network_types(NULL, flags, scan_started_cb,
+                                          scan_stopped_cb,
+                                          scan_network_added_cb, widget, unk,
+                                          selection_changed_cb, user_data);
 }
 
 gint

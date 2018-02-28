@@ -20,8 +20,12 @@
 */
 
 #include <icd/osso-ic-ui-dbus.h>
+#include <glib.h>
+#include <gmodule.h>
+#include <dbus/dbus.h>
+#include <libosso.h>
 
-#define IAP_DIALOGS_PLUGIN_DEFINE(dialog, match) \
+#define IAP_DIALOGS_PLUGIN_DEFINE_EXTENDED(dialog, match, code) \
 static gboolean \
 iap_dialog_##dialog##_show(int iap_id, DBusMessage *message, \
                            iap_dialogs_showing_fn showing, \
@@ -29,12 +33,13 @@ iap_dialog_##dialog##_show(int iap_id, DBusMessage *message, \
                            void *libosso); \
 static gboolean \
 iap_dialog_##dialog##_cancel(DBusMessage *message); \
-G_MODULE_EXPORT int \
+G_MODULE_EXPORT const gchar * \
 g_module_check_init(GModule *module G_GNUC_UNUSED) \
 { \
   iap_dialog_register_service(ICD_UI_DBUS_INTERFACE, ICD_UI_DBUS_PATH); \
+  code \
 \
-  return 0; \
+  return NULL; \
 } \
 G_MODULE_EXPORT void \
 g_module_unload(GModule *module G_GNUC_UNUSED) \
@@ -47,9 +52,9 @@ iap_dialogs_plugin_match(DBusMessage *message) \
   return dbus_message_is_method_call(message, ICD_UI_DBUS_INTERFACE, match); \
 } \
 G_MODULE_EXPORT gboolean \
-iap_dialogs_plugin_show(void *iap_id, DBusMessage *message, \
-                        void (*showing)(DBusMessage *), \
-                        void (*done)(void *, gboolean), \
+iap_dialogs_plugin_show(int iap_id, DBusMessage *message, \
+                        iap_dialogs_showing_fn showing, \
+                        iap_dialogs_done_fn done, \
                         void *libosso) \
 { \
   g_return_val_if_fail(showing != NULL, FALSE); \
@@ -63,6 +68,9 @@ iap_dialogs_plugin_cancel(DBusMessage *message) \
 { \
   return iap_dialog_##dialog##_cancel(message); \
 }
+
+#define IAP_DIALOGS_PLUGIN_DEFINE(dialog, match) \
+  IAP_DIALOGS_PLUGIN_DEFINE_EXTENDED(dialog, match, {})
 
 typedef void (*iap_dialogs_showing_fn)(void);
 typedef void (*iap_dialogs_done_fn)(int iap_id, gboolean unk);

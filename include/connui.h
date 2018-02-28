@@ -30,6 +30,7 @@
 
 #include "iap-common.h"
 #include "iap-settings.h"
+#include "iap-scan.h"
 #include "connui-inetstate.h"
 #include "connui-cellular-data.h"
 #include "connui-pixbuf-cache.h"
