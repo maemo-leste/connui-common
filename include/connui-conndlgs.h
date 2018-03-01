@@ -30,9 +30,7 @@ static gboolean \
 iap_dialog_##dialog##_show(int iap_id, DBusMessage *message, \
                            iap_dialogs_showing_fn showing, \
                            iap_dialogs_done_fn done, \
-                           void *libosso); \
-static gboolean \
-iap_dialog_##dialog##_cancel(DBusMessage *message); \
+                           osso_context_t *libosso); \
 G_MODULE_EXPORT const gchar * \
 g_module_check_init(GModule *module G_GNUC_UNUSED) \
 { \
@@ -55,22 +53,24 @@ G_MODULE_EXPORT gboolean \
 iap_dialogs_plugin_show(int iap_id, DBusMessage *message, \
                         iap_dialogs_showing_fn showing, \
                         iap_dialogs_done_fn done, \
-                        void *libosso) \
+                        osso_context_t *libosso) \
 { \
   g_return_val_if_fail(showing != NULL, FALSE); \
   g_return_val_if_fail(done != NULL, FALSE); \
   g_return_val_if_fail(libosso != NULL, FALSE); \
 \
   return iap_dialog_##dialog##_show(iap_id, message, showing, done, libosso); \
-} \
-G_MODULE_EXPORT gboolean \
-iap_dialogs_plugin_cancel(DBusMessage *message) \
-{ \
-  return iap_dialog_##dialog##_cancel(message); \
 }
 
 #define IAP_DIALOGS_PLUGIN_DEFINE(dialog, match) \
-  IAP_DIALOGS_PLUGIN_DEFINE_EXTENDED(dialog, match, {})
+  IAP_DIALOGS_PLUGIN_DEFINE_EXTENDED(dialog, match, {})\
+  G_MODULE_EXPORT gboolean \
+  static gboolean \
+  iap_dialog_##dialog##_cancel(DBusMessage *message); \
+  iap_dialogs_plugin_cancel(DBusMessage *message) \
+  { \
+    return iap_dialog_##dialog##_cancel(message); \
+  }
 
 typedef void (*iap_dialogs_showing_fn)(void);
 typedef void (*iap_dialogs_done_fn)(int iap_id, gboolean unk);

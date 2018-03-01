@@ -14,7 +14,7 @@
 #include "iap-settings.h"
 
 GtkWidget *
-iap_common_show_saved_not_found_banner(GtkWidget *widget)
+iap_common_show_saved_not_found_banner(GtkWindow *widget)
 {
   return hildon_banner_show_information(GTK_WIDGET(widget), NULL,
                                         dgettext("osso-connectivity-ui",
