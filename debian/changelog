@@ -1,3 +1,9 @@
+connui-common (2.88.1) unstable; urgency=medium
+
+  * Add missing files [freemangordon]
+
+ -- Ivan J. <parazyd@dyne.org>  Thu, 01 Mar 2018 16:11:00 +0100
+
 connui-common (2.88) unstable; urgency=medium
 
   * Prepare Maemo Leste packaging
