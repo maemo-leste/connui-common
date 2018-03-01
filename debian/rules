@@ -1,68 +1,14 @@
 #!/usr/bin/make -f
 
-# export DH_VERBOSE=1
-
-include /usr/share/cdbs/1/rules/debhelper.mk
-include /usr/share/cdbs/1/class/autotools.mk
-
-DEB_DH_INSTALLDOCS_ARGS=--no-act
-DEB_INSTALL_DOCS_ALL=
-DEB_DH_INSTALL_SOURCEDIR=debian/tmp
-
 DEB_CONFIGURE_EXTRA_FLAGS = --disable-static --prefix=/usr --sysconfdir=/etc
-
-ifeq (,$(findstring nolauncher,$(DEB_BUILD_OPTIONS)))
-	DEB_CONFIGURE_EXTRA_FLAGS += --enable-maemo-launcher
-endif
 
 CFLAGS += -Werror
 
-export CFLAGS
-
-build:
-	dh_testdir
+autoreconf:
 	./autogen.sh
-	CFLAGS="$(CFLAGS)" ./configure \
-		$(DEB_CONFIGURE_EXTRA_FLAGS)
-	$(MAKE)
 
-#clean:
-#	dh_testdir
-#	dh_testroot
-#	#$(MAKE) distclean
-#	dh_clean
+override_dh_autoreconf:
+	dh_autoreconf debian/rules -- autoreconf
 
-install: build
-	dh_testdir
-	dh_testroot
-	dh_clean -k
-	dh_installdirs
-	$(MAKE) install DESTDIR=$(CURDIR)/debian/tmp
-
-binary-indep: build install
-
-binary-arch: build install
-	dh_testdir
-	dh_testroot
-	dh_installchangelogs
-	dh_installdocs
-	dh_install --sourcedir=debian/tmp -v
-	#use maemo launcher
-	dh_maemolauncher
-	dh_installman
-	dh_link
-	dh_strip --dbg-package=libconnui
-	dh_compress
-	dh_fixperms
-	dh_makeshlibs
-	dh_installdeb
-	dh_shlibdeps
-	dh_gencontrol
-	dh_md5sums
-	dh_builddeb
-
-binary: binary-indep binary-arch
-
-build-arch: build
-
-.PHONY: build clean binary-indep binary-arch binary install
+%:
+	dh $@ --with autoreconf
