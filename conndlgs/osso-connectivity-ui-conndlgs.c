@@ -656,8 +656,10 @@ main(int argc, char **argv)
   DBusMessage *mcall;
   int user_data;
 
+#if !GLIB_CHECK_VERSION(2,32,0)
   if (!g_thread_supported())
     g_thread_init(NULL);
+#endif
 
   setlocale(LC_ALL, "");
   bindtextdomain("osso-connectivity-ui", "/usr/share/locale");
