@@ -1,6 +1,8 @@
 #ifndef CONNUIDISPLAY_H
 #define CONNUIDISPLAY_H
 
+#include "connui-utils.h"
+
 gboolean connui_display_event_status(connui_utils_notify callback, gpointer user_data);
 void connui_display_event_close(connui_utils_notify callback);
 

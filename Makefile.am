@@ -16,11 +16,14 @@ pkginclude_HEADERS = 	include/connui.h \
 			include/connui-box-view.h \
 			include/connui-conndlgs.h \
 			include/connui-cellular-data.h \
+			include/connui-display.h \
+			include/connui-flightmode.h \
 			include/connui-inetstate.h \
 			include/connui-log.h \
 			include/connui-pixbuf-cache.h \
 			include/connui-pixbuf-anim.h \
 			include/connui-scan-box-view.h \
+			include/connui-utils.h \
 			include/iap-common.h \
 			include/iap-scan.h \
 			include/iap-settings.h \
