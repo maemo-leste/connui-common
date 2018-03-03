@@ -1077,10 +1077,8 @@ iap_scan_icd_scan_start(connui_wlan_info **info, gchar **network_types)
   if (!(*info)->scan_in_progress)
   {
     if ((*info)->scan_started_cb)
-    {
       (*info)->scan_started_cb((*info)->user_data);
-      (*info) = *info;
-    }
+
     (*info)->scan_in_progress = TRUE;
   }
 
