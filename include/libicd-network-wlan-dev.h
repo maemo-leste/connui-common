@@ -12,7 +12,7 @@
 
 #include <glib.h>
 #include <dbus/dbus.h>
-#include <wlancond.h>
+#include "wlancond.h"
 #include <icd/network_api_defines.h>
 
 
