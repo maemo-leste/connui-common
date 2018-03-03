@@ -41,6 +41,10 @@ PKG_CHECK_MODULES(CONNUI,
 AC_SUBST(CONNUI_LIBS)
 AC_SUBST(CONNUI_CFLAGS)
 
+PKG_CHECK_MODULES(GMODULE, gmodule-2.0)
+AC_SUBST(GMODULE_CFLAGS)
+AC_SUBST(GMODULE_LIBS)
+
 AC_ARG_ENABLE([maemo-launcher],
               [AS_HELP_STRING([--enable-maemo-launcher],
                               [build with maemo-launcher support])],
