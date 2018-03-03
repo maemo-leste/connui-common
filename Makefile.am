@@ -17,13 +17,15 @@ pkginclude_HEADERS = 	include/connui.h \
 			include/connui-conndlgs.h \
 			include/connui-cellular-data.h \
 			include/connui-inetstate.h \
+			include/connui-log.h \
 			include/connui-pixbuf-cache.h \
 			include/connui-pixbuf-anim.h \
 			include/connui-scan-box-view.h \
 			include/iap-common.h \
 			include/iap-scan.h \
 			include/iap-settings.h \
-			include/iap-network.h
+			include/iap-network.h \
+			include/libicd-network-wlan-dev.h
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA	= connui.pc

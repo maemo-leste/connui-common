@@ -1,7 +1,7 @@
 #include <gconf/gconf-client.h>
 #include <gtk/gtk.h>
 #include <icd/dbus_api.h>
-#include <libicd-network-wlan-dev.h>
+#include "libicd-network-wlan-dev.h"
 
 #include <string.h>
 
