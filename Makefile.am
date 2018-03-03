@@ -25,7 +25,9 @@ pkginclude_HEADERS = 	include/connui.h \
 			include/iap-scan.h \
 			include/iap-settings.h \
 			include/iap-network.h \
-			include/libicd-network-wlan-dev.h
+			include/libicd-network-wlan-dev.h \
+			include/wlancond.h \
+			include/wlancond-dbus.h
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA	= connui.pc
