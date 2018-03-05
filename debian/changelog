@@ -1,3 +1,10 @@
+connui-common (2.88.5) unstable; urgency=medium
+
+  * make connui-dbus.h public
+  * fix IAP_DIALOGS_PLUGIN_DEFINE macro
+
+ -- Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>  Mon, 05 Mar 2018 07:27:22 +0200
+
 connui-common (2.88.4) unstable; urgency=medium
 
   * Add missing files [freemangordon]
