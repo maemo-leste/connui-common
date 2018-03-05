@@ -1,4 +1,4 @@
-SUBDIRS = connui conndlgs
+SUBDIRS = connui conbtui conndlgs
 
 dbusdir = $(sysconfdir)/dbus-1/system.d/
 dbus_DATA = data/icd-ui.conf
@@ -12,7 +12,7 @@ services_DATA = data/osso-connectivity-ui-conndlgs.service
 system_servicesdir = $(datadir)/dbus-1/system-services/
 system_services_DATA = data/com.nokia.osso_connectivity_ui_conndlgs.service
 
-pkginclude_HEADERS = 	include/connui.h \
+connuiinclude_HEADERS = include/connui.h \
 			include/connui-box-view.h \
 			include/connui-conndlgs.h \
 			include/connui-cellular-data.h \
@@ -33,5 +33,11 @@ pkginclude_HEADERS = 	include/connui.h \
 			include/wlancond.h \
 			include/wlancond-dbus.h
 
+connuiincludedir = $(includedir)/connui
+
+conbtuiinclude_HEADERS = include/gateway_settings.h
+
+conbtuiincludedir = $(includedir)/conbtui
+
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA	= connui.pc
+pkgconfig_DATA	= connui.pc conbtui.pc

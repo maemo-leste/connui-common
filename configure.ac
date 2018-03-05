@@ -76,6 +76,8 @@ AC_OUTPUT([
 Makefile
 connui/Makefile
 connui.pc
+conbtui/Makefile
+conbtui.pc
 conndlgs/Makefile
 ])
 

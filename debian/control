@@ -23,9 +23,7 @@ Package: libconnui-dev
 Section: libdevel
 Priority: optional
 Architecture: any
-Depends: ${shlibs:Depends},
-         ${misc:Depends},
-		 libconnui (= ${binary:Version})
+Depends: libconnui (= ${binary:Version})
 Description: libconnui development files
  This package contains the files needed for developing applications that
  use libconnui.
@@ -39,11 +37,20 @@ Description: Connectivity Dialogs daemon
  This package provides the Connectivity Dialogs that are activated via D-Bus
  requested by ICd and other parties.
 
-#Package: libconbtui0
-#Priority: optional
-#Architecture: any
-#Depends: ${shlibs:Depends}
-#Conflicts: libbtui
-#Description: Bluetooth UI Library
-# This package provides a Bluetooth UI library for generic BT bonding and
-# searching UI.
+Package: libconbtui0
+Priority: optional
+Architecture: any
+Depends: ${shlibs:Depends}
+Conflicts: libbtui
+Description: Bluetooth UI Library
+ This package provides a Bluetooth UI library for generic BT bonding and
+ searching UI.
+
+Package: libconbtui0-dev
+Section: libdevel
+Priority: optional
+Architecture: any
+Depends: libconbtui0 (= ${binary:Version})
+Description: libconbtui0 development files
+ This package contains the files needed for developing applications that
+ use libconbtui0.
