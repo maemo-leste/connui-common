@@ -64,9 +64,9 @@ iap_dialogs_plugin_show(int iap_id, DBusMessage *message, \
 
 #define IAP_DIALOGS_PLUGIN_DEFINE(dialog, match) \
   IAP_DIALOGS_PLUGIN_DEFINE_EXTENDED(dialog, match, {})\
-  G_MODULE_EXPORT gboolean \
   static gboolean \
   iap_dialog_##dialog##_cancel(DBusMessage *message); \
+  G_MODULE_EXPORT gboolean \
   iap_dialogs_plugin_cancel(DBusMessage *message) \
   { \
     return iap_dialog_##dialog##_cancel(message); \
