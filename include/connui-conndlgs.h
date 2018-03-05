@@ -73,7 +73,7 @@ iap_dialogs_plugin_show(int iap_id, DBusMessage *message, \
   }
 
 typedef void (*iap_dialogs_showing_fn)(void);
-typedef void (*iap_dialogs_done_fn)(int iap_id, gboolean unk);
+typedef void (*iap_dialogs_done_fn)(int iap_id, gboolean process_pending);
 
 typedef gboolean (*iap_dialogs_match_fn)(DBusMessage *message);
 typedef gboolean (*iap_dialogs_show_fn)(int iap_id, DBusMessage *message, iap_dialogs_showing_fn showing, iap_dialogs_done_fn done, osso_context_t *libosso);
