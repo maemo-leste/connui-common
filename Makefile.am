@@ -17,6 +17,7 @@ pkginclude_HEADERS = 	include/connui.h \
 			include/connui-conndlgs.h \
 			include/connui-cellular-data.h \
 			include/connui-display.h \
+			include/connui-dbus.h \
 			include/connui-flightmode.h \
 			include/connui-inetstate.h \
 			include/connui-log.h \
