@@ -133,22 +133,23 @@ connui_flightmode_get_device_mode_cb(DBusPendingCall *pending,
   }
 }
 
-void
+dbus_bool_t
 connui_flightmode_off_confirm(void)
 {
-  connui_flightmode_req_device_mode_change(MCE_NORMAL_MODE MCE_CONFIRM_SUFFIX);
+  return connui_flightmode_req_device_mode_change(
+        MCE_NORMAL_MODE MCE_CONFIRM_SUFFIX);
 }
 
-void
+dbus_bool_t
 connui_flightmode_off(void)
 {
-  connui_flightmode_req_device_mode_change(MCE_NORMAL_MODE);
+  return connui_flightmode_req_device_mode_change(MCE_NORMAL_MODE);
 }
 
-void
+dbus_bool_t
 connui_flightmode_on(void)
 {
-  connui_flightmode_req_device_mode_change(MCE_FLIGHT_MODE);
+  return connui_flightmode_req_device_mode_change(MCE_FLIGHT_MODE);
 }
 
 void

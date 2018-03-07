@@ -3,10 +3,10 @@
 
 typedef void (*connui_flightmode_notify) (dbus_bool_t offline, gpointer user_data);
 
-void connui_flightmode_off_confirm();
-void connui_flightmode_off();
-void connui_flightmode_on();
-void connui_flightmode_close(connui_flightmode_notify callback);
+dbus_bool_t connui_flightmode_off_confirm();
+dbus_bool_t connui_flightmode_off();
+dbus_bool_t connui_flightmode_on();
+dbus_bool_t connui_flightmode_close(connui_flightmode_notify callback);
 gboolean connui_flightmode_status(connui_flightmode_notify callback, gpointer user_data);
 
 #endif
