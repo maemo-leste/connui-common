@@ -6,6 +6,6 @@ libconbtui_la_LDFLAGS = -Wl,--no-undefined
 libconbtui_la_LIBADD = $(CONNUI_LIBS) -losso
 
 libconbtui_la_SOURCES =	\
-			gateway_settings.c
+			gateway-settings.c
 
 MAINTAINERCLEANFILES = Makefile.in

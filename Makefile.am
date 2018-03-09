@@ -35,7 +35,7 @@ connuiinclude_HEADERS = include/connui.h \
 
 connuiincludedir = $(includedir)/connui
 
-conbtuiinclude_HEADERS = include/gateway_settings.h
+conbtuiinclude_HEADERS = include/gateway-settings.h
 
 conbtuiincludedir = $(includedir)/conbtui
 
