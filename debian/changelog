@@ -1,3 +1,9 @@
+connui-common (2.88.6) unstable; urgency=medium
+
+  * add conbtui initial implementation
+
+ -- Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>  Fri, 09 Mar 2018 17:33:56 +0200
+
 connui-common (2.88.5) unstable; urgency=medium
 
   * make connui-dbus.h public
