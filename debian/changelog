@@ -1,3 +1,9 @@
+connui-common (2.88.7) unstable; urgency=medium
+
+  * make wlan-common.h public
+
+ -- Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>  Tue, 10 Apr 2018 19:54:23 +0300
+
 connui-common (2.88.6) unstable; urgency=medium
 
   * add conbtui initial implementation
