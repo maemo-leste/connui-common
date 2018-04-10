@@ -51,7 +51,7 @@ wlan_common_get_icon_name_by_saved(gboolean saved)
 }
 
 const char *
-wlan_common_get_iaptype_icon_name_by_capability(int capability)
+wlan_common_get_iaptype_icon_name_by_capability(guint capability)
 {
   if (capability & WLAN_CAP_WLAN)
     return "connect_manager_wlan";

@@ -31,7 +31,8 @@ connuiinclude_HEADERS = include/connui.h \
 			include/iap-network.h \
 			include/libicd-network-wlan-dev.h \
 			include/wlancond.h \
-			include/wlancond-dbus.h
+			include/wlancond-dbus.h \
+			include/wlan-common.h
 
 connuiincludedir = $(includedir)/connui
 
