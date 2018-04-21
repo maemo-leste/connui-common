@@ -1073,10 +1073,10 @@ iap_settings_get_iap_list(GtkListStore *dun_iaps, const gchar **which_types,
           gint icon_size = hildon_get_icon_pixel_size(
                 gtk_icon_size_from_name("hildon-small"));
 
-          g_free(icon);
           gtk_list_store_set(
                 GTK_LIST_STORE(dun_iaps), &iter, pixbuf_column,
                 connui_pixbuf_cache_get(cache, icon, icon_size), -1);
+          g_free(icon);
         }
       }
     }
