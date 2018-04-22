@@ -1007,7 +1007,7 @@ iap_settings_get_iap_list(GtkListStore *dun_iaps, const gchar **which_types,
         }
       }
 
-      if ((!which_types || found) &&
+      if ((!which_types || *found) &&
           (strcmp(type, "GPRS") || iap_settings_is_gprs_iap_visible(iap)))
       {
         gtk_list_store_append(GTK_LIST_STORE(dun_iaps), &iter);
