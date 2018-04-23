@@ -1,3 +1,11 @@
+connui-common (2.88.8) unstable; urgency=medium
+
+  [Ivaylo Dimitrov]
+  * fix use-after-free
+  * iap_settings_get_iap_list: make sure to add only requested types of iaps
+
+ -- Ivan J. <parazyd@dyne.org>  Mon, 23 Apr 2018 20:37:00 +0200
+
 connui-common (2.88.7) unstable; urgency=medium
 
   * make wlan-common.h public
