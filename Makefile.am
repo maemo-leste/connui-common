@@ -15,6 +15,7 @@ system_services_DATA = data/com.nokia.osso_connectivity_ui_conndlgs.service
 connuiinclude_HEADERS = include/connui.h \
 			include/connui-box-view.h \
 			include/connui-conndlgs.h \
+			include/connui-cell-renderer-operator.h \
 			include/connui-cellular-data.h \
 			include/connui-display.h \
 			include/connui-dbus.h \
