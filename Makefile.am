@@ -37,10 +37,10 @@ connuiinclude_HEADERS = include/connui.h \
 
 connuiincludedir = $(includedir)/connui
 
-conbtuiinclude_HEADERS = include/gateway/settings.h \
+conbtuigatewayinclude_HEADERS = include/gateway/settings.h \
 			 include/gateway/pin.h
 
-conbtuiincludedir = $(includedir)/conbtui
+conbtuigatewayincludedir = $(includedir)/conbtui/gateway
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA	= connui.pc conbtui.pc
