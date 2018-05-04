@@ -847,9 +847,8 @@ gboolean
 iap_scan_start_for_network_types(gchar **network_types, int flags,
                                  void (*scan_started_cb)(gpointer),
                                  iap_scan_cancel_fn scan_stopped_cb,
-                                 gboolean (*scan_network_added_cb)(connui_scan_entry *, gpointer),
-                                 GtkWidget *widget,
-                                 void *unk,
+                                 iap_scan_network_added_fn scan_network_added_cb,
+                                 GtkWidget *widget, void *unk,
                                  void (*selection_changed_cb)(GtkTreeSelection *, gpointer),
                                  gpointer user_data)
 {
@@ -938,7 +937,7 @@ iap_scan_start_for_network_types(gchar **network_types, int flags,
     }
   }
 
-  return iap_scan_icd_scan_start(info, (gchar **)network_types);
+  return iap_scan_icd_scan_start(info, network_types);
 }
 
 static void

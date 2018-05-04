@@ -62,5 +62,13 @@ gboolean iap_scan_start(int flags, iap_scan_started_fn scan_started_cb,
                         GtkWidget *widget, void *unk,
                         iap_scan_selection_changed_fn selection_changed_cb,
                         gpointer user_data);
+gboolean
+iap_scan_start_for_network_types(gchar **network_types, int flags,
+                                 void (*scan_started_cb)(gpointer),
+                                 iap_scan_cancel_fn scan_stopped_cb,
+                                 iap_scan_network_added_fn scan_network_added_cb,
+                                 GtkWidget *widget, void *unk,
+                                 void (*selection_changed_cb)(GtkTreeSelection *, gpointer),
+                                 gpointer user_data);
 
 #endif // IAPSCAN_H
