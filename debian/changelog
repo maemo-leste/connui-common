@@ -1,3 +1,11 @@
+connui-common (2.88.10) unstable; urgency=medium
+
+  * make iap_scan_start_for_network_types public
+  * connbtui: add gateway_pin_random_digit_string
+  * conbtui: fix gateway headers install path
+
+ -- Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>  Fri, 04 May 2018 17:06:23 +0300
+
 connui-common (2.88.9) unstable; urgency=medium
 
   * make connui_cell_reneder_operator public public
