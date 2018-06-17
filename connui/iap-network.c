@@ -217,7 +217,7 @@ iap_network_entry_is_saved(network_entry *entry)
 {
   g_return_val_if_fail(entry != NULL, FALSE);
 
-  if (entry->network_attributes & 0x1000000)
+  if (entry->network_attributes & ICD_NW_ATTR_IAPNAME)
   {
     GConfValue *val =
         iap_settings_get_gconf_value(entry->network_id, "temporary");
