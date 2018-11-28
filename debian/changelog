@@ -1,3 +1,9 @@
+connui-common (2.88.11) unstable; urgency=medium
+
+  * Fix size of array length in iap_scan_icd_signal
+
+ -- Merlijn B. W. Wajer <merlijn@wizzup.org>  Wed, 28 Nov 2018 23:09:09 +0100
+
 connui-common (2.88.10) unstable; urgency=medium
 
   * make iap_scan_start_for_network_types public
