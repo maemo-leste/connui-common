@@ -475,7 +475,7 @@ iap_scan_icd_signal(DBusConnection *connection, DBusMessage *message,
   dbus_int32_t network_priority;
   dbus_int32_t service_priority;
   dbus_int32_t signal_strength;
-  gsize network_id_len;
+  dbus_uint32_t network_id_len;
   gchar *network_id;
   dbus_uint32_t network_attributes;
   gchar *network_name;
