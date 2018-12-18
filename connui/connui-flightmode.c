@@ -26,7 +26,7 @@ connui_flightmode_req_device_mode_change(const char *mode)
                                      MCE_REQUEST_PATH,
                                      MCE_REQUEST_IF,
                                      MCE_DEVICE_MODE_CHANGE_REQ,
-                                     DBUS_TYPE_STRING, mode,
+                                     DBUS_TYPE_STRING, &mode,
                                      DBUS_TYPE_INVALID);
   if (!message)
   {
