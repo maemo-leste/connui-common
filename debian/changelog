@@ -1,3 +1,9 @@
+connui-common (2.88.12) unstable; urgency=medium
+
+  * connui: add connui_utils_notify_notify_UINT
+
+ -- Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>  Fri, 04 Jan 2018 17:53:11 +0200
+
 connui-common (2.88.11) unstable; urgency=medium
 
   * Fix size of array length in iap_scan_icd_signal
