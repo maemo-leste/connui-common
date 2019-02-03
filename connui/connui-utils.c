@@ -186,6 +186,28 @@ connui_utils_notify_notify_POINTER_POINTER_POINTER(GSList *list, gpointer arg1,
 }
 
 void
+connui_utils_notify_notify_INT_POINTER_POINTER_POINTER_POINTER(
+    GSList *list, gint arg1, gpointer arg2, gpointer arg3, gpointer arg4,
+    gpointer arg5)
+{
+  typedef void (*cb_INT_POINTER_POINTER_POINTER_POINTER)(
+        gint, gpointer, gpointer, gpointer, gpointer, gpointer);
+
+  while (list)
+  {
+    connui_notifier *notifier = (connui_notifier *)list->data;
+
+    if (notifier && notifier->callback)
+    {
+      ((cb_INT_POINTER_POINTER_POINTER_POINTER)notifier->callback)(
+            arg1, arg2, arg3, arg4, arg5, notifier->user_data);
+    }
+
+    list = list->next;
+  }
+}
+
+void
 connui_utils_notify_notify_BOOLEAN(GSList *list, gboolean arg1)
 {
   typedef void (*cb_BOOLEAN)(gboolean, gpointer);

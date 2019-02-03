@@ -19,6 +19,7 @@ GSList *connui_utils_notify_add(GSList *list, connui_utils_notify callback, gpoi
 void connui_utils_notify_notify_POINTER(GSList *list, gpointer arg1);
 void connui_utils_notify_notify_POINTER_POINTER(GSList *list, gpointer arg1, gpointer arg2);
 void connui_utils_notify_notify_POINTER_POINTER_POINTER(GSList *list, gpointer arg1, gpointer arg2, gpointer arg3);
+void connui_utils_notify_notify_INT_POINTER_POINTER_POINTER_POINTER(GSList *list, gint arg1, gpointer arg2, gpointer arg3, gpointer arg4, gpointer arg5);
 void connui_utils_notify_notify_BOOLEAN(GSList *list, gboolean arg1);
 void connui_utils_notify_notify_INT_POINTER(GSList *list, int arg1, gpointer arg2);
 void connui_utils_notify_notify_BOOLEAN_UINT(GSList *list, gboolean arg1, guint arg2);
