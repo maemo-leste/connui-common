@@ -1,8 +1,14 @@
+connui-common (2.88.13) unstable; urgency=medium
+
+  * connui: add connui_utils_notify_notify_INT_POINTER_POINTER_POINTER_POINTER
+
+ -- Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>  Sun, 03 Feb 2019 11:25:41 +0200
+
 connui-common (2.88.12) unstable; urgency=medium
 
   * connui: add connui_utils_notify_notify_UINT
 
- -- Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>  Fri, 04 Jan 2018 17:53:11 +0200
+ -- Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>  Fri, 04 Jan 2019 17:53:11 +0200
 
 connui-common (2.88.11) unstable; urgency=medium
 
