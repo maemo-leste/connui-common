@@ -7,6 +7,7 @@ libconbtui_la_LIBADD = $(CONNUI_LIBS) -losso
 
 libconbtui_la_SOURCES =	\
 			gateway/settings.c \
-			gateway/pin.c
+			gateway/pin.c \
+			gateway/common.c
 
 MAINTAINERCLEANFILES = Makefile.in
