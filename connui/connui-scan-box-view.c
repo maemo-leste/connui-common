@@ -1,6 +1,5 @@
 #include <dbus/dbus.h>
 #include <gtk/gtk.h>
-#include <libintl.h>
 #include <hildon/hildon.h>
 #include <string.h>
 
@@ -10,6 +9,8 @@
 
 #include "iap-common.h"
 #include "iap-scan.h"
+
+#include "intl.h"
 
 struct _ConnuiScanBoxViewPrivate
 {
@@ -95,7 +96,7 @@ connui_scan_box_view_update_child(ConnuiBoxView *view, GtkWidget *hbutton,
   if (can_disconnect)
   {
     gchar* tmp = service_text;
-    const gchar *s = dgettext("osso-connectivity-ui", "conn_fi_disconnect_iap");
+    const gchar *s = _("conn_fi_disconnect_iap");
 
     service_text = g_strdup_printf(s, tmp);
     g_free(tmp);
@@ -107,9 +108,7 @@ connui_scan_box_view_update_child(ConnuiBoxView *view, GtkWidget *hbutton,
       !strncmp(entry->network_type, "WLAN_", 5) &&
       entry->network_attributes & 0x1000)
   {
-    hildon_button_set_value(HILDON_BUTTON(hbutton),
-                            dgettext("osso-connectivity-ui",
-                                     "conn_va_wps_complient"));
+    hildon_button_set_value(HILDON_BUTTON(hbutton), _("conn_va_wps_complient"));
   }
 
   hildon_button_set_alignment(HILDON_BUTTON(hbutton), 0.0, 0.5, 1.0, 0.0);

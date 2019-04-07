@@ -20,6 +20,8 @@
 
 #include "connui-conndlgs.h"
 
+#include "config.h"
+
 struct _dialog_info_s
 {
   gboolean showing;
@@ -662,8 +664,8 @@ main(int argc, char **argv)
 #endif
 
   setlocale(LC_ALL, "");
-  bindtextdomain("osso-connectivity-ui", "/usr/share/locale");
-  textdomain("osso-connectivity-ui");
+  bindtextdomain(GETTEXT_PACKAGE, "/usr/share/locale");
+  textdomain(GETTEXT_PACKAGE);
   hildon_gtk_init(&argc, &argv);
   dbus_g_thread_init();
 

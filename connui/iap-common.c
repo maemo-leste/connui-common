@@ -2,7 +2,6 @@
 #include <gconf/gconf-client.h>
 #include <hildon/hildon.h>
 #include <icd/osso-ic-gconf.h>
-#include <libintl.h>
 #include <libosso.h>
 
 #include "iap-common.h"
@@ -13,12 +12,13 @@
 
 #include "iap-settings.h"
 
+#include "intl.h"
+
 GtkWidget *
 iap_common_show_saved_not_found_banner(GtkWindow *widget)
 {
   return hildon_banner_show_information(GTK_WIDGET(widget), NULL,
-                                        dgettext("osso-connectivity-ui",
-                                                 "conn_ib_net_conn_not_found"));
+                                        _("conn_ib_net_conn_not_found"));
 }
 
 void

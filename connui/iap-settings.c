@@ -3,7 +3,6 @@
 #include <hildon/hildon.h>
 
 #include <string.h>
-#include <libintl.h>
 #include <ctype.h>
 
 #include "connui-dbus.h"
@@ -12,6 +11,8 @@
 #include "iap-common.h"
 #include "iap-settings.h"
 #include "wlan-common.h"
+
+#include "intl.h"
 
 gchar *
 iap_settings_create_iap_id()
@@ -303,8 +304,7 @@ get_iap_name_by_type(const gchar *type)
   if (strncmp(type, "GPRS", 4))
     return NULL;
 
-  return g_strdup(dgettext("osso-connectivity-ui",
-                           "conn_va_placeholder_iap_name"));
+  return g_strdup(_("conn_va_placeholder_iap_name"));
 }
 
 gchar *
@@ -490,7 +490,7 @@ try_name2:
   if (entry->network_type && !strcmp(entry->network_type, "WLAN_INFRA"))
   {
     if (!entry->network_id || !*entry->network_id)
-      return g_strdup(dgettext("osso-connectivity-ui", "conn_fi_hidden_wlan"));
+      return g_strdup(_("conn_fi_hidden_wlan"));
   }
 
   val = iap_settings_get_gconf_value(entry->network_id, "name");

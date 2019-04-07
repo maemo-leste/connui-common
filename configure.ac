@@ -72,6 +72,11 @@ AC_SUBST(LAUNCHER_DEPS_LIBS)
 hildondesktoplibdir=`pkg-config libhildondesktop-1 --variable=hildondesktoplibdir`
 AC_SUBST(hildondesktoplibdir)
 
+dnl Localization
+GETTEXT_PACKAGE=osso-connectivity-ui
+AC_SUBST(GETTEXT_PACKAGE)
+AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE, "${GETTEXT_PACKAGE}", [gettext package])
+
 AC_OUTPUT([
 Makefile
 connui/Makefile
