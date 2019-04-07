@@ -1,3 +1,9 @@
+connui-common (2.88.14) unstable; urgency=medium
+
+  * connbtui: add more gateway winctions
+
+ -- Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>  Sun, 07 Apr 2019 11:31:25 +0300
+
 connui-common (2.88.13) unstable; urgency=medium
 
   * connui: add connui_utils_notify_notify_INT_POINTER_POINTER_POINTER_POINTER
