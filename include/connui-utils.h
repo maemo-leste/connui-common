@@ -24,6 +24,7 @@ void connui_utils_notify_notify_BOOLEAN(GSList *list, gboolean arg1);
 void connui_utils_notify_notify_INT_POINTER(GSList *list, int arg1, gpointer arg2);
 void connui_utils_notify_notify_BOOLEAN_UINT(GSList *list, gboolean arg1, guint arg2);
 void connui_utils_notify_notify_UINT(GSList *list, guint arg1);
+void connui_utils_notify_notify_UINT64_UINT64_UINT_BOOLEAN_POINTER(GSList *list, guint64 arg1, guint64 arg2, guint arg3, gboolean arg4, gpointer arg5);
 
 void open_log(const char *ident, gboolean open);
 
