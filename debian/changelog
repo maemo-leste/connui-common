@@ -1,3 +1,11 @@
+connui-common (2.88.16) unstable; urgency=medium
+
+  * connui: rename connui_utils_notify_notify_UINT64_UINT64_UINT_BOOLEAN_POINTER
+    to rename connui_utils_notify_notify_UINT64_UINT64_TIMET_BOOLEAN_POINTER to
+    account for the real parameter type
+
+ -- Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>  Sat, 13 Apr 2019 17:18:23 +0300
+
 connui-common (2.88.15) unstable; urgency=medium
 
   * connui: add connui_utils_notify_notify_UINT64_UINT64_UINT_BOOLEAN_POINTER
