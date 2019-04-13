@@ -275,18 +275,18 @@ connui_utils_notify_notify_UINT(GSList *list, guint arg1)
 }
 
 void
-connui_utils_notify_notify_UINT64_UINT64_UINT_BOOLEAN_POINTER(
-    GSList *list, guint64 arg1, guint64 arg2, guint arg3, gboolean arg4,
+connui_utils_notify_notify_UINT64_UINT64_TIMET_BOOLEAN_POINTER(
+    GSList *list, guint64 arg1, guint64 arg2, time_t arg3, gboolean arg4,
     gpointer arg5)
 {
-  typedef void (*cb_UINT64_UINT64_UINT_BOOLEAN_POINTER)(guint64, guint64, guint, gboolean, gpointer, gpointer);
+  typedef void (*cb_UINT64_UINT64_TIMET_BOOLEAN_POINTER)(guint64, guint64, time_t, gboolean, gpointer, gpointer);
 
   while (list)
   {
     connui_notifier *notifier = (connui_notifier *)list->data;
 
     if (notifier && notifier->callback)
-      ((cb_UINT64_UINT64_UINT_BOOLEAN_POINTER)notifier->callback)(arg1, arg2, arg3, arg4, arg5, notifier->user_data);
+      ((cb_UINT64_UINT64_TIMET_BOOLEAN_POINTER)notifier->callback)(arg1, arg2, arg3, arg4, arg5, notifier->user_data);
 
     list = list->next;
   }
