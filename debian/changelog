@@ -1,3 +1,9 @@
+connui-common (2.88.17) unstable; urgency=medium
+
+  * conbtui: fix wrong condition
+
+ -- Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>  Tue, 23 Apr 2019 18:33:18 +0300
+
 connui-common (2.88.16) unstable; urgency=medium
 
   * connui: rename connui_utils_notify_notify_UINT64_UINT64_UINT_BOOLEAN_POINTER
