@@ -7,7 +7,7 @@ static GtkWidget *note = NULL;
 static gint
 gateway_common_show_confirmation_note(GtkWindow *parent, const gchar *title)
 {
-  if (GTK_IS_WIDGET(note))
+  if (!GTK_IS_WIDGET(note))
     note = hildon_note_new_confirmation(parent, title);
 
   return gtk_dialog_run(GTK_DIALOG(note));
