@@ -1,9 +1,11 @@
 #include <gconf/gconf-client.h>
 #include <icd/osso-ic-gconf.h>
 #include <hildon/hildon.h>
+#include <libofono/ofono-manager.h>
 
 #include <string.h>
 #include <ctype.h>
+#include <time.h>
 
 #include "connui-dbus.h"
 #include "connui-log.h"
@@ -893,60 +895,99 @@ iap_settings_set_gconf_value(const gchar *iap, const gchar *key,
   return TRUE;
 }
 
+static void
+ofono_notify(const gpointer data, gpointer user_data)
+{
+  gboolean *inited = user_data;
+
+  *inited = TRUE;
+}
+
 static gboolean
 iap_settings_is_gprs_iap_visible(const gchar *iap)
 {
-  static gboolean get_imsi_failed;
-  static char imsi[16];
-  dbus_int32_t unused;
-  const char *s;
   GConfValue *val;
   gboolean rv = FALSE;
-
-  if (get_imsi_failed)
-    return FALSE;
-
-  if (!*imsi)
-  {
-    DBusMessage *mcall = connui_dbus_create_method_call("com.nokia.phone.SIM",
-                                                        "/com/nokia/phone/SIM",
-                                                        "Phone.Sim", "get_imsi",
-                                                        DBUS_TYPE_INVALID);
-    DBusMessage *reply = connui_dbus_recv_reply_system_mcall(mcall);
-
-    if (reply && dbus_message_get_args(reply, NULL,
-                                       DBUS_TYPE_STRING, &s,
-                                       DBUS_TYPE_INT32, &unused,
-                                       DBUS_TYPE_INVALID))
-    {
-      strncpy(imsi, s, sizeof(imsi) - 1);
-    }
-    else
-    {
-      CONNUI_ERR("Unable to retrieve SIM imsi, no GPRS IAPs shown");
-      get_imsi_failed = TRUE;
-    }
-
-    if (mcall)
-      dbus_message_unref(mcall);
-
-    if (reply)
-      dbus_message_unref(mcall);
-  }
-
-  if (get_imsi_failed)
-    return FALSE;
+  const gchar *imsi;
+  time_t start;
+  gboolean inited = FALSE;
 
   val = iap_settings_get_gconf_value(iap, "sim_imsi");
 
-  if (val && *imsi && val->type == GCONF_VALUE_STRING &&
-      (s = gconf_value_get_string(val)) && !strcmp(imsi, s))
+  if (val)
   {
-    rv = TRUE;
+    if (val->type == GCONF_VALUE_STRING)
+      imsi = gconf_value_get_string(val);
+    else
+    {
+      gconf_value_free(val);
+      val = NULL;
+    }
   }
 
-  if (val)
-    gconf_value_free(val);
+  if (!val)
+    return rv;
+
+  ofono_manager_modems_register(ofono_notify, &inited);
+
+  start = time(NULL);
+
+  /* wait no more that 30 seconds for all modems to init */
+  /* not the pretiest code, but... :) */
+  while (!inited && (time(NULL) - start) < 30)
+    g_main_context_iteration(NULL, TRUE);
+
+  if (inited)
+  {
+    while ((time(NULL) - start) < 30)
+    {
+      GHashTable *modems = ofono_manager_get_modems();
+      GHashTableIter iter;
+      gpointer p;
+      gboolean finish = TRUE;
+
+      g_hash_table_iter_init (&iter, modems);
+
+      while (g_hash_table_iter_next (&iter, NULL, &p))
+      {
+        /* wait all SIMS to become ready */
+        modem *m = p;
+
+        if (m->sim.present == -1 || !m->sim.imsi || !*m->sim.imsi)
+        {
+          finish = FALSE;
+          g_main_context_iteration(NULL, TRUE);
+          break;
+        }
+      }
+
+      if (!finish)
+        continue;
+
+      g_hash_table_iter_init (&iter, modems);
+
+      while (g_hash_table_iter_next (&iter, NULL, &p))
+      {
+        modem *m = p;
+
+        if (m->sim.present)
+        {
+          if (!strcmp(m->sim.imsi, imsi))
+          {
+            rv = TRUE;
+            break;
+          }
+        }
+      }
+
+      if (finish)
+        break;
+    }
+  }
+
+  ofono_manager_modems_close(ofono_notify, &inited);
+
+  gconf_value_free(val);
 
   return rv;
 }
