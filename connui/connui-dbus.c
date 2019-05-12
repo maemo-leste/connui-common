@@ -442,7 +442,8 @@ connui_dbus_send_msg(DBusConnection *connection, DBusMessage *message)
   }
   else
   {
-    CONNUI_ERR("dbus message %p is not a signal, mcall return or error", message);
+    CONNUI_ERR("dbus message %p is not a signal, mcall return or error",
+               message);
     return FALSE;
   }
 }
@@ -462,13 +463,17 @@ connui_dbus_mcall_reply(DBusConnection *connection, DBusMessage *message)
 {
   DBusMessage *ret;
   DBusError error;
+
   if (dbus_message_get_type(message) == DBUS_MESSAGE_TYPE_METHOD_CALL)
   {
     dbus_error_init(&error);
-    ret = dbus_connection_send_with_reply_and_block(connection, message, 5000, &error);
+    ret = dbus_connection_send_with_reply_and_block(connection, message, 5000,
+                                                    &error);
+
     if (!ret)
     {
-      CONNUI_ERR("Failed DBUS method call with error '%s': %s", error.name, error.message);
+      CONNUI_ERR("Failed DBUS method call with error '%s': %s", error.name,
+                 error.message);
       dbus_error_free(&error);
     }
   }
