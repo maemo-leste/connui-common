@@ -898,9 +898,6 @@ iap_settings_set_gconf_value(const gchar *iap, const gchar *key,
 static void
 ofono_notify(const gpointer data, gpointer user_data)
 {
-  gboolean *inited = user_data;
-
-  *inited = TRUE;
 }
 
 static gboolean
@@ -928,61 +925,56 @@ iap_settings_is_gprs_iap_visible(const gchar *iap)
   if (!val)
     return rv;
 
-  ofono_manager_modems_register(ofono_notify, &inited);
+  ofono_manager_modems_register(ofono_notify, NULL);
+  ofono_manager_get_modems_sync();
 
   start = time(NULL);
 
   /* wait no more that 30 seconds for all modems to init */
   /* not the pretiest code, but... :) */
-  while (!inited && (time(NULL) - start) < 30)
-    g_main_context_iteration(NULL, TRUE);
-
-  if (inited)
+  while ((time(NULL) - start) < 30)
   {
-    while ((time(NULL) - start) < 30)
+    GHashTable *modems = ofono_manager_get_modems();
+    GHashTableIter iter;
+    gpointer p;
+    gboolean finish = TRUE;
+
+    g_hash_table_iter_init (&iter, modems);
+
+    while (g_hash_table_iter_next (&iter, NULL, &p))
     {
-      GHashTable *modems = ofono_manager_get_modems();
-      GHashTableIter iter;
-      gpointer p;
-      gboolean finish = TRUE;
+      /* wait all SIMS to become ready */
+      modem *m = p;
 
-      g_hash_table_iter_init (&iter, modems);
-
-      while (g_hash_table_iter_next (&iter, NULL, &p))
+      if (m->sim.present == -1 || !m->sim.imsi || !*m->sim.imsi)
       {
-        /* wait all SIMS to become ready */
-        modem *m = p;
+        finish = FALSE;
+        g_main_context_iteration(NULL, TRUE);
+        break;
+      }
+    }
 
-        if (m->sim.present == -1 || !m->sim.imsi || !*m->sim.imsi)
+    if (!finish)
+      continue;
+
+    g_hash_table_iter_init (&iter, modems);
+
+    while (g_hash_table_iter_next (&iter, NULL, &p))
+    {
+      modem *m = p;
+
+      if (m->sim.present)
+      {
+        if (!strcmp(m->sim.imsi, imsi))
         {
-          finish = FALSE;
-          g_main_context_iteration(NULL, TRUE);
+          rv = TRUE;
           break;
         }
       }
-
-      if (!finish)
-        continue;
-
-      g_hash_table_iter_init (&iter, modems);
-
-      while (g_hash_table_iter_next (&iter, NULL, &p))
-      {
-        modem *m = p;
-
-        if (m->sim.present)
-        {
-          if (!strcmp(m->sim.imsi, imsi))
-          {
-            rv = TRUE;
-            break;
-          }
-        }
-      }
-
-      if (finish)
-        break;
     }
+
+    if (finish)
+      break;
   }
 
   ofono_manager_modems_close(ofono_notify, &inited);
