@@ -36,7 +36,8 @@ PKG_CHECK_MODULES(CONNUI,
 			hildon-1 dnl
 			icd2 dnl
 			osso-ic dnl
-			libofono dnl
+			libgofono dnl
+			libglibutil dnl
 			gconf-2.0])
 
 AC_SUBST(CONNUI_LIBS)
