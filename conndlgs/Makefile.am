@@ -4,7 +4,9 @@ osso_connectivity_ui_conndlgs_CFLAGS = \
 			$(CONNUI_CFLAGS) $(LAUNCHER_DEPS_CFLAGS) \
 			$(GMODULE_CFLAGS) \
 			-I$(srcdir)/../include -Wall -Werror \
-			-DOSSOLOG_COMPILE=1 -Wno-format-extra-args
+			-DOSSOLOG_COMPILE=1 -Wno-format-extra-args \
+			-DCONNUI_HOSTCPU=$(host_cpu) \
+			-DCONNUI_HOSTOS=$(host_os)
 
 osso_connectivity_ui_conndlgs_LDADD = $(CONNUI_LIBS) $(GMODULE_LIBS) \
 			-losso $(top_builddir)/connui/libconnui.la

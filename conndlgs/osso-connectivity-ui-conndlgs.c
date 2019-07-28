@@ -76,11 +76,18 @@ iap_dialog_get_info()
   iap_dialog_info->message_hash =
       g_hash_table_new_full(g_direct_hash, g_direct_equal, NULL,
                             (GDestroyNotify)dbus_connection_unref);
-  dir = g_dir_open("/usr/lib/conndlgs", 0, NULL);
+
+  #if defined(CONNUI_CPU)
+  #define fstr(x) #x
+  const char* lib_path = "/usr/lib/" fstr(CONNUI_CPU) "-" fstr(CONNUI_HOSTOS) "/conndlgs";
+  #else
+  const char* lib_path = "/usr/lib/conndlgs";
+  #endif
+  dir = g_dir_open(lib_path, 0, NULL);
 
   if (!dir)
   {
-    CONNUI_ERR("Unable to open plugin directory: %s", "/usr/lib/conndlgs");
+    CONNUI_ERR("Unable to open plugin directory: %s", lib_path);
     return iap_dialog_info;
   }
 
