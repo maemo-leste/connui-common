@@ -77,9 +77,8 @@ iap_dialog_get_info()
       g_hash_table_new_full(g_direct_hash, g_direct_equal, NULL,
                             (GDestroyNotify)dbus_connection_unref);
 
-  #if defined(CONNUI_CPU)
-  #define fstr(x) #x
-  const char* lib_path = "/usr/lib/" fstr(CONNUI_CPU) "-" fstr(CONNUI_HOSTOS) "/conndlgs";
+  #if defined(CONNUI_LIBPATH)
+  const char* lib_path = CONNUI_LIBPATH;
   #else
   const char* lib_path = "/usr/lib/conndlgs";
   #endif
