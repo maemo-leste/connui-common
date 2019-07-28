@@ -1,3 +1,9 @@
+connui-common (2.88.20) unstable; urgency=medium
+
+  * conndlgs: fix macro expansion and actually load the right path
+
+ -- Merlijn Wajer <merlijn@wizzup.org>  Sun, 28 Jul 2019 13:10:43 +0200
+
 connui-common (2.88.19) unstable; urgency=medium
 
   * conndlgs: change how plugins are loaded
