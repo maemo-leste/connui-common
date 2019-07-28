@@ -1,3 +1,9 @@
+connui-common (2.88.19) unstable; urgency=medium
+
+  * conndlgs: change how plugins are loaded
+
+ -- Merlijn Wajer <merlijn@wizzup.org>  Sun, 28 Jul 2019 12:00:23 +0200
+
 connui-common (2.88.18) unstable; urgency=medium
 
   * conndlgs: change where plugins are loaded from
