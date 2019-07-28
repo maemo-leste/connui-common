@@ -100,7 +100,7 @@ iap_dialog_get_info()
     if (!module_name)
       break;
 
-    path = g_module_build_path("/usr/lib/conndlgs", module_name);
+    path = g_module_build_path(lib_path, module_name);
     plugin = g_module_open(path, G_MODULE_BIND_LOCAL);
 
     if (plugin)
