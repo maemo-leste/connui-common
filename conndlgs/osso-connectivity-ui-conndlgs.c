@@ -63,6 +63,7 @@ static dialog_info_s *iap_dialog_info = NULL;
 static dialog_info_s *
 iap_dialog_get_info()
 {
+  const char* lib_path = CONNDLGS_PLUGIN_DIR;
   plugin_info_s *plugin_info;
   GDir *dir;
 
@@ -77,11 +78,6 @@ iap_dialog_get_info()
       g_hash_table_new_full(g_direct_hash, g_direct_equal, NULL,
                             (GDestroyNotify)dbus_connection_unref);
 
-  #if defined(CONNUI_LIBPATH)
-  const char* lib_path = CONNUI_LIBPATH;
-  #else
-  const char* lib_path = "/usr/lib/conndlgs";
-  #endif
   dir = g_dir_open(lib_path, 0, NULL);
 
   if (!dir)

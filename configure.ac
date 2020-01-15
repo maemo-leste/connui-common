@@ -7,7 +7,6 @@ AM_MAINTAINER_MODE
 
 AM_INIT_AUTOMAKE
 
-AC_CANONICAL_HOST
 AC_PROG_CC
 AC_PROG_INSTALL
 AM_PROG_LIBTOOL
@@ -71,6 +70,9 @@ AC_SUBST(LAUNCHER_DEPS_LIBS)
 #+++++++++++++++++++
 # Directories setup
 #+++++++++++++++++++
+
+conndlgslibdir=$libdir/conndlgs
+AC_SUBST(conndlgslibdir)
 
 hildondesktoplibdir=`pkg-config libhildondesktop-1 --variable=hildondesktoplibdir`
 AC_SUBST(hildondesktoplibdir)

@@ -5,12 +5,13 @@ osso_connectivity_ui_conndlgs_CFLAGS = \
 			$(GMODULE_CFLAGS) \
 			-I$(srcdir)/../include -Wall -Werror \
 			-DOSSOLOG_COMPILE=1 -Wno-format-extra-args \
-			-DCONNUI_LIBPATH='"/usr/lib/$(host_cpu)-$(host_os)/conndlgs"'
+			-DCONNDLGS_PLUGIN_DIR=\"$(conndlgslibdir)\"
 
 osso_connectivity_ui_conndlgs_LDADD = $(CONNUI_LIBS) $(GMODULE_LIBS) \
 			-losso $(top_builddir)/connui/libconnui.la
 
-osso_connectivity_ui_conndlgs_LDFLAGS = $(LAUNCHER_DEPS_LIBS) -pie
+osso_connectivity_ui_conndlgs_LDFLAGS = $(LAUNCHER_DEPS_LIBS) -pie \
+			-Wl,--as-needed
 
 osso_connectivity_ui_conndlgs_SOURCES = \
 			osso-connectivity-ui-conndlgs.c
