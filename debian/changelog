@@ -2,7 +2,7 @@ connui-common (2.88.21) unstable; urgency=medium
 
   * Port to debhelper 10. Make it multiarch compatible.
 
- -- Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>  Wed, 15 Jan 2020 09:28:33 +0200
+ -- Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>  Fri, 17 Jan 2020 11:42:21 +0100
 
 connui-common (2.88.20) unstable; urgency=medium
 
