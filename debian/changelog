@@ -1,3 +1,9 @@
+connui-common (2.88.22) unstable; urgency=medium
+
+  * Make sure libtool does not interfere with maemo-launcher linker flags
+
+ -- Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>  Sun, 01 Nov 2020 15:58:23 +0200
+
 connui-common (2.88.21) unstable; urgency=medium
 
   * Port to debhelper 10. Make it multiarch compatible.
