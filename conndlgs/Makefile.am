@@ -10,8 +10,7 @@ osso_connectivity_ui_conndlgs_CFLAGS = \
 osso_connectivity_ui_conndlgs_LDADD = $(CONNUI_LIBS) $(GMODULE_LIBS) \
 			-losso $(top_builddir)/connui/libconnui.la
 
-osso_connectivity_ui_conndlgs_LDFLAGS = $(LAUNCHER_DEPS_LIBS) -pie \
-			-Wl,--as-needed
+osso_connectivity_ui_conndlgs_LDFLAGS = $(LAUNCHER_DEPS_LIBS) -Wl,--as-needed
 
 osso_connectivity_ui_conndlgs_SOURCES = \
 			osso-connectivity-ui-conndlgs.c
