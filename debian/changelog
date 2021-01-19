@@ -1,3 +1,10 @@
+connui-common (2.88.23) unstable; urgency=medium
+
+  * Improve error logging of failed method calls
+  * conndlgs: use VERSION macro
+
+ -- Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>  Tue, 19 Jan 2021 12:03:53 +0200
+
 connui-common (2.88.22) unstable; urgency=medium
 
   * Make sure libtool does not interfere with maemo-launcher linker flags
