@@ -73,7 +73,7 @@ iap_dialog_get_info()
   iap_dialog_info = g_new0(dialog_info_s, 1);
 
   iap_dialog_info->osso_context =
-      osso_initialize("osso_connectivity_ui_conndlgs", "2.88+0m5", TRUE, NULL);
+      osso_initialize("osso_connectivity_ui_conndlgs", VERSION, TRUE, NULL);
   iap_dialog_info->message_hash =
       g_hash_table_new_full(g_direct_hash, g_direct_equal, NULL,
                             (GDestroyNotify)dbus_connection_unref);
