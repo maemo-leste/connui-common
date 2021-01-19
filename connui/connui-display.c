@@ -1,6 +1,7 @@
 #include <mce/dbus-names.h>
 
 #include "connui-dbus.h"
+#include "connui-dbus-log.h"
 #include "connui-log.h"
 #include "connui-utils.h"
 
@@ -106,6 +107,8 @@ get_display_status_cb(DBusPendingCall *pending, void *user_data)
       dbus_error_free(&error);
     }
   }
+  else
+    CONNUI_DBUS_ERR(mcall);
 
   dbus_message_unref(mcall);
 }

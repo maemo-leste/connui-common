@@ -6,6 +6,7 @@
 #include <string.h>
 
 #include "connui-dbus.h"
+#include "connui-dbus-log.h"
 #include "connui-utils.h"
 #include "connui-log.h"
 #include "connui-flightmode.h"
@@ -125,6 +126,8 @@ connui_flightmode_get_device_mode_cb(DBusPendingCall *pending,
 
         connui_flightmode_do_caller_cb(status, user_data);
       }
+      else
+        CONNUI_DBUS_ERR(reply);
 
       dbus_message_unref(reply);
     }

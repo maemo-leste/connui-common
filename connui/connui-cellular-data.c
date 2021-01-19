@@ -1,4 +1,5 @@
 #include "connui-dbus.h"
+#include "connui-dbus-log.h"
 #include "connui-utils.h"
 #include "connui-log.h"
 #include "connui-cellular-data.h"
@@ -112,6 +113,8 @@ connui_cellular_data_suspended_available_cb(DBusPendingCall *pending,
 
     connui_cellular_data_suspended_do_caller_cb(!suspended, 0, info);
   }
+  else
+    CONNUI_DBUS_ERR(reply);
 
   dbus_message_unref(reply);
 }

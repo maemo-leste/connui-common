@@ -6,6 +6,7 @@
 #include <string.h>
 
 #include "connui-dbus.h"
+#include "connui-dbus-log.h"
 #include "connui-utils.h"
 #include "connui-log.h"
 #include "connui-devicelock.h"
@@ -67,28 +68,34 @@ static void connui_devicelock_get_mode_cb(DBusPendingCall *pending, struct Globa
       (*user_data)->call = 0;
     }
     DBusMessage *reply = dbus_pending_call_steal_reply(pending);
+
     if (reply)
     {
       if (dbus_message_get_type(reply) != DBUS_MESSAGE_TYPE_ERROR)
       {
         char *status;
         DBusError error;
+
         dbus_error_init(&error);
+
         if (!dbus_message_get_args(reply, &error, 's', &status, 0))
         {
-          CONNUI_ERR("connui_devicelock: could not get args from mcall, '%s'", error.message);
+          CONNUI_ERR("connui_devicelock: could not get args from mcall, '%s'",
+                     error.message);
           dbus_message_unref(reply);
           dbus_error_free(&error);
           return;
         }
+
         connui_devicelock_do_caller_cb(status, user_data);
       }
+      else
+        CONNUI_DBUS_ERR(reply);
+
       dbus_message_unref(reply);
     }
     else
-    {
       CONNUI_ERR("connui_devicelock: no message in pending call");
-    }
   }
 }
 
