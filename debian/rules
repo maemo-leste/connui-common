@@ -3,7 +3,7 @@
 
 DEB_CONFIGURE_EXTRA_FLAGS = --enable-maemo-launcher --disable-static --prefix=/usr --sysconfdir=/etc
 
-CFLAGS += -Werror
+CFLAGS += -Wall -Werror
 
 override_dh_install:
 	dh_install
