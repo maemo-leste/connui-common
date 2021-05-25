@@ -17,6 +17,8 @@
 
 #include "iap-scan.h"
 
+#define IS_EMPTY(str) (!(str) || !*(str))
+
 struct _connui_wlan_info
 {
   int flags;
@@ -1160,12 +1162,7 @@ gboolean
 iap_scan_add_scan_entry(connui_scan_entry *scan_entry, gboolean can_disconnect)
 {
   GSList *found;
-  connui_wlan_info **info;
-  GConfValue *val;
-  GSList *related;
-  gpointer scan_results;
-
-  info = get_wlan_info();
+  connui_wlan_info **info = get_wlan_info();
 
   if (!info || !*info)
   {
@@ -1175,106 +1172,73 @@ iap_scan_add_scan_entry(connui_scan_entry *scan_entry, gboolean can_disconnect)
 
   found = g_slist_find_custom((*info)->scan_list, scan_entry,
                               (GCompareFunc)iap_network_entry_compare);
+
   if (!found)
   {
-    if ((*info)->scan_network_added_cb)
+    GSList *related = NULL;
+
+    if (iap_network_entry_is_saved(&scan_entry->network) &&
+        !IS_EMPTY(scan_entry->network.network_id) &&
+        IS_EMPTY(scan_entry->network.service_type))
     {
-      if (!(*info)->scan_network_added_cb(scan_entry, (*info)->user_data))
-        return FALSE;
-    }
+      GConfValue *v = iap_settings_get_gconf_value(
+            scan_entry->network.network_id, "service_type");
 
-    (*info)->scan_list = g_slist_prepend((*info)->scan_list, scan_entry);
-
-    scan_results = 0;
-
-    if (iap_network_entry_is_saved(&scan_entry->network))
-    {
-      if (scan_entry->network.service_type && *scan_entry->network.service_type)
-      {
-LABEL_32:
-        if (scan_entry->network.service_id && *scan_entry->network.service_id)
-        {
-          iap_common_get_service_properties(scan_entry->network.service_type,
-                                            scan_entry->network.service_id,
-                                            "scan_results", &scan_results,
-                                            NULL);
-
-          if (scan_results)
-          {
-            related = iap_scan_add_related_result(
-                  info, scan_entry,
-                  (GCompareFunc)iap_network_entry_service_compare);
-
-            goto LABEL_29;
-          }
-        }
-        else
-        {
-LABEL_25:
-          if (iap_scan_is_hidden_wlan(&scan_entry->network))
-          {
-            related = iap_scan_add_related_result(
-                  info, scan_entry,
-                  (GCompareFunc)iap_scan_entry_network_compare);
-LABEL_29:
-            scan_entry->list = related;
-            g_free(scan_results);
-            iap_scan_add_network_to_list(info, scan_entry);
-
-            goto LABEL_5;
-          }
-        }
-
-        related = NULL;
-        goto LABEL_29;
-      }
-
-      if (!scan_entry->network.network_id || !*scan_entry->network.network_id)
-      {
-LABEL_23:
-        if (!scan_entry->network.service_type ||
-            !*scan_entry->network.service_type)
-        {
-          goto LABEL_25;
-        }
-
-        goto LABEL_32;
-      }
-
-      val = iap_settings_get_gconf_value(scan_entry->network.network_id,
-                                         "service_type");
-
-      if (val)
+      if (v)
       {
         g_free(scan_entry->network.service_type);
 
-        scan_entry->network.service_type =
-            g_strdup(gconf_value_get_string(val));
-        gconf_value_free(val);
+        scan_entry->network.service_type = g_strdup(gconf_value_get_string(v));
+        gconf_value_free(v);
 
-        if (!scan_entry->network.service_id || !*scan_entry->network.service_id)
+        if (IS_EMPTY(scan_entry->network.service_id))
         {
-          val = iap_settings_get_gconf_value(scan_entry->network.network_id,
-                                             "service_id");
-          if (val)
+          v = iap_settings_get_gconf_value(scan_entry->network.network_id,
+                                           "service_id");
+          if (v)
           {
             g_free(scan_entry->network.service_id);
             scan_entry->network.service_id =
-                g_strdup(gconf_value_get_string(val));
-            gconf_value_free(val);
+                g_strdup(gconf_value_get_string(v));
+            gconf_value_free(v);
           }
         }
       }
     }
 
-    goto LABEL_23;
+    if (!IS_EMPTY(scan_entry->network.service_type) &&
+        !IS_EMPTY(scan_entry->network.service_id))
+    {
+      gpointer scan_results = NULL;
+
+      iap_common_get_service_properties(scan_entry->network.service_type,
+                                        scan_entry->network.service_id,
+                                        "scan_results", &scan_results,
+                                        NULL);
+
+      if (scan_results)
+      {
+        related = iap_scan_add_related_result(
+              info, scan_entry,
+              (GCompareFunc)iap_network_entry_service_compare);
+        g_free(scan_results);
+      }
+    }
+    else if (iap_scan_is_hidden_wlan(&scan_entry->network))
+    {
+      related = iap_scan_add_related_result(
+            info, scan_entry, (GCompareFunc)iap_scan_entry_network_compare);
+    }
+
+    scan_entry->list = related;
+    iap_scan_add_network_to_list(info, scan_entry);
   }
-
-  iap_scan_update_network_in_list(info, found->data);
-  iap_scan_free_scan_entry(scan_entry);
-  scan_entry = found->data;
-
-LABEL_5:
+  else
+  {
+    iap_scan_update_network_in_list(info, found->data);
+    iap_scan_free_scan_entry(scan_entry);
+    scan_entry = found->data;
+  }
 
   if (can_disconnect)
   {
