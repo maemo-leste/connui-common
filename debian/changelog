@@ -1,3 +1,10 @@
+connui-common (2.88.24) unstable; urgency=medium
+
+  * finish REing of iap_scan_add_scan_entry()
+  * add -Wall to build flags
+
+ -- Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>  Tue, 25 May 2021 17:58:31 +0300
+
 connui-common (2.88.23) unstable; urgency=medium
 
   * Improve error logging of failed method calls
