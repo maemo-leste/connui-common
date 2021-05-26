@@ -1,3 +1,9 @@
+connui-common (2.88.25) unstable; urgency=medium
+
+  * Restore removed code in iap_scan_add_scan_entry()
+
+ -- Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>  Tue, 26 May 2021 20:14:44 +0300
+
 connui-common (2.88.24) unstable; urgency=medium
 
   * finish REing of iap_scan_add_scan_entry()
