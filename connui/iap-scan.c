@@ -1177,6 +1177,14 @@ iap_scan_add_scan_entry(connui_scan_entry *scan_entry, gboolean can_disconnect)
   {
     GSList *related = NULL;
 
+    if ((*info)->scan_network_added_cb)
+    {
+      if (!(*info)->scan_network_added_cb(scan_entry, (*info)->user_data))
+        return FALSE;
+    }
+
+    (*info)->scan_list = g_slist_prepend((*info)->scan_list, scan_entry);
+
     if (iap_network_entry_is_saved(&scan_entry->network) &&
         !IS_EMPTY(scan_entry->network.network_id) &&
         IS_EMPTY(scan_entry->network.service_type))
