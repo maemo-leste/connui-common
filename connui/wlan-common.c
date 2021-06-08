@@ -4,6 +4,7 @@
 
 #include "iap-network.h"
 #include "wlan-common.h"
+#include "wlancond.h"
 
 gboolean
 wlan_common_mangle_ssid(gchar *ssid, size_t len)
@@ -30,13 +31,13 @@ wlan_common_gconf_wlan_security_to_capability(const gchar *security)
     return 0;
 
   if (!strncmp(security, "NONE", 4))
-    return WLAN_CAP_SECURITY_NONE;
+    return WLANCOND_OPEN;
   else if (!strncmp(security, "WEP", 3))
-    return WLAN_CAP_SECURITY_WEP;
+    return WLANCOND_WEP;
   else if (!strncmp(security, "WPA_PSK", 7))
-    return WLAN_CAP_SECURITY_WPA_PSK;
+    return WLANCOND_WPA_PSK;
   else if (!strncmp(security, "WPA_EAP", 7))
-    return WLAN_CAP_SECURITY_WPA_EAP;
+    return WLANCOND_WPA_EAP;
 
   return 0;
 }
@@ -53,10 +54,10 @@ wlan_common_get_icon_name_by_saved(gboolean saved)
 const char *
 wlan_common_get_iaptype_icon_name_by_capability(guint capability)
 {
-  if (capability & WLAN_CAP_WLAN)
+  if (capability & WLANCOND_INFRA)
     return "connect_manager_wlan";
 
-  if(capability & WLAN_CAP_ADHOCWLAN)
+  if(capability & WLANCOND_ADHOC)
     return "connect_manager_adhocwlan";
 
   return NULL;

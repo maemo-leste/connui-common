@@ -1,15 +1,6 @@
 #ifndef WLAN_COMMON_H
 #define WLAN_COMMON_H
 
-#define WLAN_CAP_WLAN 0x1
-#define WLAN_CAP_ADHOCWLAN 0x2
-#define wlan_capability_4 0x4
-#define wlan_capability_8 0x8
-#define WLAN_CAP_SECURITY_NONE 0x10
-#define WLAN_CAP_SECURITY_WEP 0x20
-#define WLAN_CAP_SECURITY_WPA_PSK 0x40
-#define WLAN_CAP_SECURITY_WPA_EAP 0x80
-
 typedef enum
 {
   STRENGTH_NONE,
