@@ -324,13 +324,13 @@ iap_settings_get_name(const gchar *iap)
   if (val)
   {
     gchar *service_type = g_strdup(gconf_value_get_string(val));
+    gchar *name = NULL;
 
     gconf_value_free(val);
     val = iap_settings_get_gconf_value(iap, "service_id");
 
     if (val)
     {
-      gchar *s = NULL;
       gchar *domainname = NULL;
       gchar *msgid = NULL;
       gchar *service_id = g_strdup(gconf_value_get_string(val));
@@ -341,18 +341,17 @@ iap_settings_get_name(const gchar *iap)
                                         "name", &msgid,
                                         NULL);
       if (msgid && domainname)
-        s = g_strdup(dgettext(domainname, msgid));
+        name = g_strdup(dgettext(domainname, msgid));
 
       g_free(msgid);
       g_free(domainname);
-      g_free(service_type);
       g_free(service_id);
-
-      if (s)
-        return s;
     }
 
     g_free(service_type);
+
+    if (name)
+      return name;
   }
 
   val = iap_settings_get_gconf_value(iap, "name");
@@ -360,10 +359,10 @@ iap_settings_get_name(const gchar *iap)
   if (val)
   {
 
-    gchar *s = g_strdup(gconf_value_get_string(val));
+    gchar *name = g_strdup(gconf_value_get_string(val));
     gconf_value_free(val);
 
-    return s;
+    return name;
   }
 
   val = iap_settings_get_gconf_value(iap, "temporary");
@@ -372,14 +371,14 @@ iap_settings_get_name(const gchar *iap)
   {
     if (gconf_value_get_bool(val) == 1)
     {
-      gchar *s = iap_settings_get_wlan_ssid(iap);
+      gchar *name = iap_settings_get_wlan_ssid(iap);
 
       gconf_value_free(val);
 
-      if (s)
+      if (name)
       {
-        wlan_common_mangle_ssid(s, strlen(s));
-        return s;
+        wlan_common_mangle_ssid(name, strlen(name));
+        return name;
       }
     }
     else
@@ -390,12 +389,12 @@ iap_settings_get_name(const gchar *iap)
 
   if (val)
   {
-    gchar *s = get_iap_name_by_type(gconf_value_get_string(val));
+    gchar *name = get_iap_name_by_type(gconf_value_get_string(val));
 
     gconf_value_free(val);
 
-    if (s)
-      return s;
+    if (name)
+      return name;
   }
 
   return g_strdup(iap);
