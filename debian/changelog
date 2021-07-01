@@ -1,3 +1,9 @@
+connui-common (2.88.27) unstable; urgency=medium
+
+  * iap_settings_get_name(): fix use after free
+
+ -- Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>  Thu, 01 Jul 2021 06:03:52 +0300
+
 connui-common (2.88.26) unstable; urgency=medium
 
   * (-dev) use defines from wlancond.h instead of custom ones
