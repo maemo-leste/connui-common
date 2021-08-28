@@ -544,17 +544,8 @@ iap_settings_get_iap_icon_name_by_type(const gchar *network_type,
 
   if (service_type && *service_type && service_id && *service_id)
   {
-    gchar *path = iap_common_get_service_gconf_path(service_type, service_id);
-
-    if (gconf_client_dir_exists(gconf, path, NULL))
-    {
-      gchar *key = g_strdup_printf("%s/type_icon_name", path);
-
-      icon_name = gconf_client_get_string(gconf, key, NULL);
-      g_free(key);
-    }
-
-    g_free(path);
+    iap_common_get_service_properties(service_type, service_id,
+            "type_icon_name", &icon_name, NULL);
   }
 
   if (!icon_name && network_type)
