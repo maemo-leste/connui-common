@@ -166,7 +166,7 @@ iap_common_get_service_gconf_path(const gchar *service_type,
 
   service_type_escaped = gconf_escape_key(service_type, -1);
   service_id_escaped = gconf_escape_key(service_id, -1);
-  gconf_path = g_strconcat("/system/osso/connectivity/srv_provider", "/",
+  gconf_path = g_strconcat(ICD_GCONF_SRV_PROVIDERS, "/",
                            service_type_escaped,
                            "/custom_ui/",
                            service_id_escaped,
@@ -176,6 +176,23 @@ iap_common_get_service_gconf_path(const gchar *service_type,
 
   return gconf_path;
 }
+
+gchar *
+iap_common_get_service_gconf_path_default(const gchar *service_type)
+{
+  gchar *service_type_escaped;
+  gchar *gconf_path;
+
+  service_type_escaped = gconf_escape_key(service_type, -1);
+  gconf_path = g_strconcat(ICD_GCONF_SRV_PROVIDERS, "/",
+                           service_type_escaped,
+                           "/default_custom_ui",
+                           NULL);
+  g_free(service_type_escaped);
+
+  return gconf_path;
+}
+
 
 static gboolean
 delete_event_cb(GtkWidget *widget, GdkEvent *event, gpointer user_data)
@@ -210,14 +227,14 @@ iap_common_get_preferred_service(gchar **preferred_type, gchar **preferred_id)
   }
 
   _preferred_type = gconf_client_get_string(
-        gconf_client, "/system/osso/connectivity/srv_provider/preferred_type",
+        gconf_client, ICD_GCONF_SRV_PROVIDERS "/preferred_type",
         NULL);
 
   if (!_preferred_type)
     goto err;
 
   _preferred_id = gconf_client_get_string(
-        gconf_client, "/system/osso/connectivity/srv_provider/preferred_id",
+        gconf_client, ICD_GCONF_SRV_PROVIDERS "/preferred_id",
         NULL);
 
   if (!_preferred_id)
@@ -286,7 +303,9 @@ iap_common_get_service_properties(const gchar *service_type,
 {
   GConfClient *gconf;
   gchar *gconf_path;
+  gchar *gconf_common_path;
   va_list ap;
+  gboolean path_exists = FALSE, default_path_exists = FALSE;
 
   g_return_if_fail(service_type != NULL && service_id != NULL);
 
@@ -307,7 +326,19 @@ iap_common_get_service_properties(const gchar *service_type,
     return;
   }
 
-  if (gconf_client_dir_exists(gconf, gconf_path, NULL))
+  gconf_common_path = iap_common_get_service_gconf_path_default(service_type);
+
+  if (!gconf_common_path)
+  {
+    free(gconf_path);
+    g_object_unref(gconf);
+    return;
+  }
+
+  path_exists = gconf_client_dir_exists(gconf, gconf_path, NULL);
+  default_path_exists = gconf_client_dir_exists(gconf, gconf_common_path, NULL);
+
+  if (path_exists || default_path_exists)
   {
     va_start(ap, prop_name);
 
@@ -322,10 +353,19 @@ iap_common_get_service_properties(const gchar *service_type,
         break;
       }
 
-      s = g_strconcat(gconf_path, "/", prop_name, NULL);
+      if (path_exists)
+      {
+          s = g_strconcat(gconf_path, "/", prop_name, NULL);
+          *prop = gconf_client_get_string(gconf, s, NULL);
+          g_free(s);
+      }
 
-      *prop = gconf_client_get_string(gconf, s, NULL);
-      g_free(s);
+      if (default_path_exists && (*prop == NULL))
+      {
+          s = g_strconcat(gconf_common_path, "/", prop_name, NULL);
+          *prop = gconf_client_get_string(gconf, s, NULL);
+          g_free(s);
+      }
 
       prop_name = va_arg(ap, gchar *);
 
