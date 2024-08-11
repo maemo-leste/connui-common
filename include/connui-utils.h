@@ -15,6 +15,7 @@ void connui_utils_reload_theme();
 void connui_utils_unblank_display();
 GSList *connui_utils_notify_remove(GSList *list, connui_utils_notify callback);
 GSList *connui_utils_notify_add(GSList *list, connui_utils_notify callback, gpointer user_data);
+void connui_utils_notify_notify(GSList *list, gpointer first_arg, ...) G_GNUC_NULL_TERMINATED;
 
 void connui_utils_notify_notify_POINTER(GSList *list, gpointer arg1);
 void connui_utils_notify_notify_POINTER_POINTER(GSList *list, gpointer arg1, gpointer arg2);

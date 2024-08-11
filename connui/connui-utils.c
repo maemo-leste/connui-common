@@ -296,14 +296,18 @@ void
 connui_utils_notify_notify(GSList *list, gpointer first_arg, ...)
 {
   typedef void (*cb_1_arg)(gpointer);
-  typedef void (*cb_2_arg)(int, gpointer);
-  typedef void (*cb_3_arg)(int, int, gpointer);
-  typedef void (*cb_4_arg)(int, int, int, gpointer);
-  typedef void (*cb_5_arg)(int, int, int, int, gpointer);
-  typedef void (*cb_6_arg)(int, int, int, int, int, gpointer);
-  typedef void (*cb_7_arg)(int, int, int, int, int, int, gpointer);
+  typedef void (*cb_2_arg)(gpointer, gpointer);
+  typedef void (*cb_3_arg)(gpointer, gpointer, gpointer);
+  typedef void (*cb_4_arg)(gpointer, gpointer, gpointer, gpointer);
+  typedef void (*cb_5_arg)(gpointer, gpointer, gpointer, gpointer, gpointer);
+  typedef void (*cb_6_arg)(gpointer, gpointer, gpointer, gpointer, gpointer,
+                           gpointer);
+  typedef void (*cb_7_arg)(gpointer, gpointer, gpointer, gpointer, gpointer,
+                           gpointer, gpointer);
 
+  GSList *copy = NULL;
   GSList *args = NULL;
+  GSList *l;
   va_list ap;
 
   va_start(ap, first_arg);
@@ -316,61 +320,72 @@ connui_utils_notify_notify(GSList *list, gpointer first_arg, ...)
 
   va_end(ap);
 
-  while (list)
+  /* we must create copy and use it for callback calls, as callback may modify
+   * the original */
+  for (l = list; l; l = l->next)
   {
-    connui_notifier *notifier = (connui_notifier *)list->data;
+    connui_notifier *n = (connui_notifier *)l->data;
 
-    if (notifier && notifier->callback)
+    copy = connui_utils_notify_add(copy, n->callback, n->user_data);
+  }
+
+  l = copy;
+
+  while (l)
+  {
+    connui_notifier *n = (connui_notifier *)l->data;
+
+    if (n && n->callback)
     {
       switch (g_slist_length(args))
       {
         case 0:
-          ((cb_1_arg)notifier->callback)(notifier->user_data);
+          ((cb_1_arg)n->callback)(n->user_data);
           break;
         case 1:
-          ((cb_2_arg)notifier->callback)(
-                *(int*)args->data,
-                notifier->user_data);
+          ((cb_2_arg)n->callback)(
+                args->data,
+                n->user_data);
           break;
         case 2:
-          ((cb_3_arg)notifier->callback)(
-                *(int*)args->data,
-                *(int*)args->next->data,
-                notifier->user_data);
+          ((cb_3_arg)n->callback)(
+                args->data,
+                args->next->data,
+                n->user_data);
           break;
         case 3:
-          ((cb_4_arg)notifier->callback)(
-                *(int*)args->data,
-                *(int*)args->next->data,
-                *(int*)args->next->next->data,
-                notifier->user_data);
+          ((cb_4_arg)n->callback)(
+                args->data,
+                args->next->data,
+                args->next->next->data,
+                n->user_data);
           break;
         case 4:
-          ((cb_5_arg)notifier->callback)(
-                *(int*)args->data,
-                *(int*)args->next->data,
-                *(int*)args->next->next->data,
-                *(int*)args->next->next->next->data,
-                notifier->user_data);
+          ((cb_5_arg)n->callback)(
+                args->data,
+                args->next->data,
+                args->next->next->data,
+                args->next->next->next->data,
+                n->user_data);
           break;
         case 5:
-          ((cb_6_arg)notifier->callback)(
-                *(int*)args->data,
-                *(int*)args->next->data,
-                *(int*)args->next->next->data,
-                *(int*)args->next->next->next->data,
-                *(int*)args->next->next->next->next->data,
-                notifier->user_data);
+          ((cb_6_arg)n->callback)(
+                args->data,
+                args->next->data,
+                args->next->next->data,
+                args->next->next->next->data,
+                args->next->next->next->next->data,
+                n->user_data);
           break;
         case 6:
-          ((cb_7_arg)notifier->callback)(
-                *(int*)args->data,
-                *(int*)args->next->data,
-                *(int*)args->next->next->data,
-                *(int*)args->next->next->next->data,
-                *(int*)args->next->next->next->next->data,
-                *(int*)args->next->next->next->next->next->data,
-                notifier->user_data);
+          ((cb_7_arg)n->callback)(
+                args->data,
+                args->next->data,
+                args->next->next->data,
+                args->next->next->next->data,
+                args->next->next->next->next->data,
+                args->next->next->next->next->next->data,
+                n->user_data);
           break;
         default:
           CONNUI_ERR("Unable to call user callback, as it has %d parameters.",
@@ -379,8 +394,15 @@ connui_utils_notify_notify(GSList *list, gpointer first_arg, ...)
       }
     }
 
-    list = list->next;
+    l = l->next;
   }
 
   g_slist_free(args);
+
+  while (copy)
+  {
+    connui_notifier *notifier = (connui_notifier *)copy->data;
+
+    copy = connui_utils_notify_remove(copy, notifier->callback);
+  }
 }
