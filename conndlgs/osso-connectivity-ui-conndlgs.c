@@ -1,9 +1,9 @@
+#include "config.h"
+
 #include <glib.h>
 #include <glib/gprintf.h>
-#include <gconf/gconf-client.h>
 #include <hildon/hildon.h>
 #include <dbus/dbus.h>
-#include <dbus/dbus-glib.h>
 #include <libosso.h>
 
 #include <locale.h>
@@ -13,14 +13,12 @@
 #include <string.h>
 
 #include "connui-dbus.h"
-#include "connui-log.h"
-#include "connui-utils.h"
 #include "connui-devicelock.h"
 #include "connui-flightmode.h"
+#include "connui-log.h"
+#include "connui-utils.h"
 
 #include "connui-conndlgs.h"
-
-#include "config.h"
 
 struct _dialog_info_s
 {
@@ -222,114 +220,6 @@ static void
 iap_dialog_request_devicelock_status_cb(dbus_bool_t locked, dialog_info_s *info)
 {
   info->locked = locked;
-}
-
-static gboolean
-show_error_note(const gchar *msg)
-{
-  DBusMessage *mcall;
-
-  mcall = connui_dbus_create_method_call("com.nokia.cellular_ui",
-                                         "/com/nokia/cellular_ui",
-                                         "com.nokia.cellular_ui",
-                                         "show_error_note",
-                                         DBUS_TYPE_INVALID);
-  if (mcall)
-  {
-    if (dbus_message_append_args(mcall, 's', &msg, NULL))
-      connui_dbus_send_system_mcall(mcall, -1, NULL, NULL, NULL);
-    else
-      CONNUI_ERR("Could not append args to show error note method call");
-
-    dbus_message_unref(mcall);
-  }
-  else
-  {
-    CONNUI_ERR("could not create show error note method call");
-  }
-
-  return FALSE;
-}
-
-static void
-get_registration_status_cb(DBusPendingCall *pending, void *user_data)
-{
-  DBusMessage *message;
-  GConfClient *gconf;
-  DBusError error;
-  dbus_int32_t error_value;
-  dbus_uint32_t country_code;
-  dbus_uint32_t operator_code;
-  dbus_uint32_t cell_id;
-  dbus_uint16_t lac;
-  unsigned char supported_services;
-  unsigned char network_type;
-  unsigned char status;
-
-  message = dbus_pending_call_steal_reply(pending);
-  dbus_error_init(&error);
-
-  if (dbus_set_error_from_message(&error, message))
-  {
-    CONNUI_ERR("Unable to get registration status: %s, %s", error.name,
-               error.message);
-    dbus_error_free(&error);
-    dbus_message_unref(message);
-    return;
-  }
-
-  dbus_error_init(&error);
-
-  if (dbus_message_get_args(message, NULL,
-                            DBUS_TYPE_BYTE, &status,
-                            DBUS_TYPE_UINT16, &lac,
-                            DBUS_TYPE_UINT32, &cell_id,
-                            DBUS_TYPE_UINT32, &operator_code,
-                            DBUS_TYPE_UINT32, &country_code,
-                            DBUS_TYPE_BYTE, &network_type,
-                            DBUS_TYPE_BYTE, &supported_services,
-                            DBUS_TYPE_INT32, &error_value,
-                            DBUS_TYPE_INVALID))
-  {
-    if (error_value)
-    {
-      CONNUI_ERR("get_registration_status failed with code %d", error_value);
-      goto out;
-    }
-  }
-  else
-  {
-    CONNUI_ERR("Unable to parse registration_status_change reply: %s, %s",
-               error.name, error.message);
-    dbus_error_free(&error);
-    goto out;
-  }
-
-  gconf = gconf_client_get_default();
-
-  if (gconf)
-  {
-    if (!gconf_client_get_bool(
-          gconf,
-          "/system/osso/connectivity/ui/gprs_data_warning_home_acknowledged",
-          NULL) && !status)
-    {
-      g_idle_add((GSourceFunc)show_error_note, "home_notification");
-    }
-
-    if (!gconf_client_get_bool(
-          gconf,
-          "/system/osso/connectivity/ui/gprs_data_warning_roaming_acknowledged",
-          NULL) && status)
-    {
-      g_idle_add((GSourceFunc)show_error_note, "roaming_notification");
-    }
-
-    g_object_unref(G_OBJECT(gconf));
-  }
-
-out:
-  dbus_message_unref(message);
 }
 
 static
@@ -651,25 +541,17 @@ iap_dialog_unregister_service(const char *service, const char *path)
   CONNUI_ERR("Service %s, %s not found", service, path);
 }
 
+
 int
 main(int argc, char **argv)
 {
   gboolean should_open = TRUE;
   dialog_info_s *info;
-  DBusConnection *dbus;
-  DBusMessage *mcall;
-  int user_data;
-
-#if !GLIB_CHECK_VERSION(2,32,0)
-  if (!g_thread_supported())
-    g_thread_init(NULL);
-#endif
 
   setlocale(LC_ALL, "");
   bindtextdomain(GETTEXT_PACKAGE, "/usr/share/locale");
   textdomain(GETTEXT_PACKAGE);
   hildon_gtk_init(&argc, &argv);
-  dbus_g_thread_init();
 
   while (1)
   {
@@ -687,7 +569,7 @@ main(int argc, char **argv)
       should_open = FALSE;
   }
 
-  open_log("iap_conndlg 2.88+0m5", should_open);
+  open_log("iap_conndlg " PACKAGE_VERSION, should_open);
   info = iap_dialog_get_info();
 
   if (!connui_flightmode_status(
@@ -703,41 +585,6 @@ main(int argc, char **argv)
   {
     CONNUI_ERR("Unable to register devicelock callback");
   }
-
-  dbus = dbus_bus_get(DBUS_BUS_SYSTEM, NULL);
-  user_data = 0;
-
-  if (dbus)
-  {
-    mcall = dbus_message_new_method_call("com.nokia.phone.net",
-                                         "/com/nokia/phone/net",
-                                         "Phone.Net",
-                                         "get_registration_status");
-  }
-  else
-  {
-    CONNUI_ERR("Could not get dbus connection");
-    mcall = NULL;
-  }
-
-  if (mcall)
-  {
-    DBusPendingCall *pending;
-
-    if (dbus_connection_send_with_reply(dbus, mcall, &pending, -1))
-    {
-      dbus_pending_call_set_notify(pending, get_registration_status_cb,
-                                   &user_data, NULL);
-      dbus_pending_call_unref(pending);
-    }
-    else
-      CONNUI_ERR("Sending get_registration_status failed");
-
-    dbus_message_unref(mcall);
-  }
-  else
-    CONNUI_ERR("Unable to allocate new D-Bus get_registration_status message");
-
 
   gtk_main();
 
