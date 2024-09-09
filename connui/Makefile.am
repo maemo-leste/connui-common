@@ -1,9 +1,13 @@
 lib_LTLIBRARIES = libconnui.la
 
-libconnui_la_CFLAGS =	$(CONNUI_CFLAGS) -I$(srcdir)/../include -Wall -Werror \
+libconnui_la_CFLAGS = \
+			$(CONNUI_CFLAGS) $(GIO_CFLAGS) $(GIOUNIX_CFLAGS) \
+			-I$(srcdir)/../include -Wall -Werror \
 			-DOSSOLOG_COMPILE=1 -Wno-format-extra-args
+
 libconnui_la_LDFLAGS = -Wl,--no-undefined -Wl,--as-needed
-libconnui_la_LIBADD = $(CONNUI_LIBS) -losso
+libconnui_la_LIBADD = \
+			$(CONNUI_LIBS) $(GIO_LIBS) $(GIOUNIX_LIBS)
 
 libconnui_la_SOURCES =	\
 			iap-scan.c \
@@ -23,6 +27,22 @@ libconnui_la_SOURCES =	\
 			connui-devicelock.c \
 			connui-log.c \
 			connui-inetstate.c \
-			connui-cellular-data.c
+			connui-cellular-data.c \
+			org.ofono.Manager.c \
+			org.ofono.SimManager.c
+
+OFONO_GDBUS_WRAPPERS = \
+			org.ofono.Manager.c\
+			org.ofono.SimManager.c
+
+BUILT_SOURCES = \
+			$(OFONO_GDBUS_WRAPPERS) \
+			$(OFONO_GDBUS_WRAPPERS:.c=.h)
+
+.NOTPARALLEL:
+.xml.c:
+	$(GDBUS_CODEGEN) --generate-c-code $(@:%.c=%) $<
+
+CLEANFILES = $(BUILT_SOURCES)
 
 MAINTAINERCLEANFILES = Makefile.in

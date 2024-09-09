@@ -1,4 +1,6 @@
-AC_INIT([connui], [2.88])
+AC_INIT([Common connectivity UI library], patsubst(esyscmd([dpkg-parsechangelog -SVersion | sed -n '/^\([^-+]*\).*$/ {s//\1/;p}']), [
+]), [], [connui-common])
+
 AC_CANONICAL_SYSTEM
 
 AM_CONFIG_HEADER(config.h)
@@ -26,7 +28,6 @@ PKG_PROG_PKG_CONFIG
 # Misc programs 
 #+++++++++++++++
 
-
 AC_SUBST(CFLAGS)
 
 PKG_CHECK_MODULES(CONNUI,
@@ -36,8 +37,7 @@ PKG_CHECK_MODULES(CONNUI,
 			hildon-1 dnl
 			icd2 dnl
 			osso-ic dnl
-			libgofono dnl
-			libglibutil dnl
+			libosso dnl
 			gconf-2.0])
 
 AC_SUBST(CONNUI_LIBS)
@@ -46,6 +46,20 @@ AC_SUBST(CONNUI_CFLAGS)
 PKG_CHECK_MODULES(GMODULE, gmodule-2.0)
 AC_SUBST(GMODULE_CFLAGS)
 AC_SUBST(GMODULE_LIBS)
+
+PKG_CHECK_MODULES(GIO, gio-2.0)
+AC_SUBST(GIO_CFLAGS)
+AC_SUBST(GIO_LIBS)
+
+PKG_CHECK_MODULES(GIOUNIX, gio-unix-2.0)
+AC_SUBST(GIOUNIX_CFLAGS)
+AC_SUBST(GIOUNIX_LIBS)
+
+AC_PATH_PROG([GDBUS_CODEGEN], [gdbus-codegen])
+
+if test -z "$GDBUS_CODEGEN"; then
+  AC_MSG_ERROR([gdbus-codegen is required but was not found]);
+fi
 
 AC_ARG_ENABLE([maemo-launcher],
               [AS_HELP_STRING([--enable-maemo-launcher],

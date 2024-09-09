@@ -1,9 +1,6 @@
 #include <gconf/gconf-client.h>
 #include <icd/osso-ic-gconf.h>
 #include <hildon/hildon.h>
-#include <gofono_manager.h>
-#include <gofono_modem.h>
-#include <gofono_simmgr.h>
 
 #include <string.h>
 #include <ctype.h>
@@ -15,6 +12,9 @@
 #include "iap-common.h"
 #include "iap-settings.h"
 #include "wlan-common.h"
+
+#include "org.ofono.Manager.h"
+#include "org.ofono.SimManager.h"
 
 #include "intl.h"
 
@@ -891,9 +891,10 @@ static gboolean
 iap_settings_is_gprs_iap_visible(const gchar *iap)
 {
   const gchar *imsi;
-  OfonoManager *manager;
+  OrgOfonoManager *manager;
   gboolean rv = FALSE;
   GConfValue *val = iap_settings_get_gconf_value(iap, "sim_imsi");
+  GError *error = NULL;
 
   if (val)
   {
@@ -909,35 +910,65 @@ iap_settings_is_gprs_iap_visible(const gchar *iap)
   if (!val)
     return rv;
 
-  manager = ofono_manager_new();
+  manager = org_ofono_manager_proxy_new_for_bus_sync(
+        G_BUS_TYPE_SYSTEM, G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
+        "org.ofono", "/", NULL, &error);
 
-  if (ofono_manager_wait_valid(manager, 5000, NULL))
+  if (manager)
   {
-    GPtrArray *modems = ofono_manager_get_modems(manager);
-    guint i;
+    GVariant *modems;
 
-    for (i = 0; i < modems->len; i++)
+    if (org_ofono_manager_call_get_modems_sync(manager, &modems, NULL, &error))
     {
-      OfonoModem *modem = modems->pdata[i];
+      GError *error = NULL;
+      gchar *path;
+      GVariantIter iter;
 
-      if (ofono_modem_valid(modem))
+      g_variant_iter_init(&iter, modems);
+
+      while (!rv && g_variant_iter_loop(&iter, "(&o@a{sv})", &path, NULL))
       {
-        OfonoSimMgr *sim = ofono_simmgr_new(ofono_modem_path(modem));
+        OrgOfonoSimManager *sim = org_ofono_sim_manager_proxy_new_for_bus_sync(
+              G_BUS_TYPE_SYSTEM, G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
+              "org.ofono", path, NULL, &error);
 
-        if (ofono_simmgr_wait_valid(sim, 5000, NULL) && sim->present &&
-            sim->imsi && !strcmp(sim->imsi, imsi))
+        if (sim)
         {
-          ofono_simmgr_unref(sim);
-          rv = TRUE;
-          break;
+          GVariant *prop, *v = NULL;
+          const gchar *sim_imsi = NULL;
+
+          if (org_ofono_sim_manager_call_get_properties_sync(
+                sim, &prop, NULL, NULL))
+          {
+            v = g_variant_lookup_value(prop, "SubscriberIdentity", NULL);
+            g_variant_unref(prop);
+          }
+
+          if (v)
+          {
+            sim_imsi = g_variant_get_string(v, NULL);
+
+            if (!g_strcmp0(sim_imsi, imsi))
+              rv = TRUE;
+
+            g_variant_unref(v);
+          }
+
+          g_object_unref(sim);
         }
-
-        ofono_simmgr_unref(sim);
       }
-    }
-  }
 
-  ofono_manager_unref(manager);
+      g_variant_unref(modems);
+    }
+    else
+      CONNUI_ERR("Error getting OFONO modems [%s]", error->message);
+
+    g_object_unref(manager);
+  }
+  else
+    CONNUI_ERR("Error getting OFONO manager [%s]", error->message);
+
+  g_clear_error(&error);
   gconf_value_free(val);
 
   return rv;
