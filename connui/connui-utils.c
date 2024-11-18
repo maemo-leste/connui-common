@@ -113,7 +113,11 @@ connui_utils_notify_add(GSList *list, connui_utils_notify callback,
   GSList *l;
   connui_notifier *notify;
 
-  for (l = list; l && l->data != callback; l = l->next);
+  for (l = list; l; l = l->next)
+  {
+    if (((connui_notifier *)l->data)->callback == callback)
+      break;
+  }
 
   if (l)
     return list;
@@ -127,7 +131,7 @@ connui_utils_notify_add(GSList *list, connui_utils_notify callback,
   notify->callback = callback;
   notify->user_data = user_data;
 
-  return g_slist_append(l, notify);
+  return g_slist_append(list, notify);
 }
 
 void
