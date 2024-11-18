@@ -1,3 +1,9 @@
+connui-common (2.89.1) unstable; urgency=medium
+
+  * fix connui_utils_notify_add()
+
+ -- Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>  Mon, 18 Nov 2024 17:33:32 +0200
+
 connui-common (2.89.0) unstable; urgency=medium
 
   * conndlgs: remove registration status code
