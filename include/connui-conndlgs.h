@@ -25,7 +25,7 @@
 #include <dbus/dbus.h>
 #include <libosso.h>
 
-#define IAP_DIALOGS_PLUGIN_DEFINE_EXTENDED(dialog, match, code) \
+#define IAP_DIALOGS_PLUGIN_DEFINE_EXTENDED(dialog, match, init, exit) \
 static gboolean \
 iap_dialog_##dialog##_show(int iap_id, DBusMessage *message, \
                            iap_dialogs_showing_fn showing, \
@@ -35,13 +35,14 @@ G_MODULE_EXPORT const gchar * \
 g_module_check_init(GModule *module G_GNUC_UNUSED) \
 { \
   iap_dialog_register_service(ICD_UI_DBUS_INTERFACE, ICD_UI_DBUS_PATH); \
-  code \
+  init \
 \
   return NULL; \
 } \
 G_MODULE_EXPORT void \
 g_module_unload(GModule *module G_GNUC_UNUSED) \
 { \
+  exit \
   iap_dialog_unregister_service(ICD_UI_DBUS_INTERFACE, ICD_UI_DBUS_PATH); \
 } \
 G_MODULE_EXPORT gboolean \
@@ -63,7 +64,7 @@ iap_dialogs_plugin_show(int iap_id, DBusMessage *message, \
 }
 
 #define IAP_DIALOGS_PLUGIN_DEFINE(dialog, match) \
-  IAP_DIALOGS_PLUGIN_DEFINE_EXTENDED(dialog, match, {})\
+  IAP_DIALOGS_PLUGIN_DEFINE_EXTENDED(dialog, match, {}, {})\
   static gboolean \
   iap_dialog_##dialog##_cancel(DBusMessage *message); \
   G_MODULE_EXPORT gboolean \
