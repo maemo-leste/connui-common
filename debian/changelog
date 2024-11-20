@@ -1,3 +1,9 @@
+connui-common (2.89.2) unstable; urgency=medium
+
+  * iap_dialog: allow plugin cleanup code
+
+ -- Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>  Tue, 19 Nov 2024 14:37:52 +0200
+
 connui-common (2.89.1) unstable; urgency=medium
 
   * fix connui_utils_notify_add()
